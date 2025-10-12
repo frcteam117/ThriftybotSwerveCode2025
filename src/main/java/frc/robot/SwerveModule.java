@@ -48,10 +48,10 @@ public class SwerveModule {
     private boolean m_hasCheckedSavedOffset = false;
     
     // Drive motor conversion factors
-    private static final double DRIVE_MOTOR_RPM_TO_MPS = 
-        (5676.0 / 60.0) / SwerveConstants.DRIVE_GEAR_RATIO * (SwerveConstants.WHEEL_DIAMETER_METERS * Math.PI);
     private static final double DRIVE_MOTOR_ROTATIONS_TO_METERS = 
         (1.0 / SwerveConstants.DRIVE_GEAR_RATIO) * (SwerveConstants.WHEEL_DIAMETER_METERS * Math.PI);
+    private static final double DRIVE_MOTOR_RPM_TO_MPS = 
+        DRIVE_MOTOR_ROTATIONS_TO_METERS / 60;
 
     public SwerveModule(int driveMotorId, int azimuthMotorId, int encoderPort, 
                        double encoderTicksPerRevolution, double encoderOffsetTicks, String moduleName) {
