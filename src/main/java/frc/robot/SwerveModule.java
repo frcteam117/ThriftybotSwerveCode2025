@@ -91,6 +91,7 @@ public class SwerveModule {
      */
     private void configureAzimuthMotor() {
         m_azimuthMotor.factoryReset();
+        m_azimuthMotor.setBrakeMode(true);
         
         switch (ModuleConstants.ENCODER_SELECTED) {
             case REDUX_ENCODER -> {
