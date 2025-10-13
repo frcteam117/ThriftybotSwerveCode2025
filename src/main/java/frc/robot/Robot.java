@@ -51,14 +51,14 @@ public class Robot extends TimedRobot {
     // Get the x speed. We are inverting this because Xbox controllers return
     // negative values when we push forward.
     final var xSpeed =
-        -m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY(), 0.01))
+        -m_xspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftY() * .4, 0.03))
             * SwerveConstants.TOP_SPEED_METERS_PER_SEC;
 
     // Get the y speed or sideways/strafe speed. We are inverting this because
     // we want a positive value when we pull to the left. Xbox controllers
     // return positive values when you pull to the right by default.
     final var ySpeed =
-        -m_yspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftX(), 0.01))
+        -m_yspeedLimiter.calculate(MathUtil.applyDeadband(m_controller.getLeftX() *.4, 0.03))
             * SwerveConstants.TOP_SPEED_METERS_PER_SEC;
 
     // Get the rate of angular rotation. We are inverting this because we want a
@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
     // mathematics). Xbox controllers return positive values when you pull to
     // the right by default.
     final var rot =
-        -m_rotLimiter.calculate(MathUtil.applyDeadband(m_controller.getRightX(), 0.02))
+        -m_rotLimiter.calculate(MathUtil.applyDeadband(m_controller.getRightX() * 1.4, 0.04))
             ;
 
     m_swerve.drive(xSpeed, ySpeed, rot, fieldRelative, getPeriod());
