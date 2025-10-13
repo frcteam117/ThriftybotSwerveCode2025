@@ -84,6 +84,7 @@ public class SwerveModule {
         m_driveMotor.pid0.setPID(new PIDController(0.0004, 0.0, 0.0));
         m_driveMotor.pid0.setFF(1.0 / DRIVE_MOTOR_RPM_TO_MPS * 4);
         m_driveMotor.usePIDSlot(PIDSlot.SLOT0);
+        m_driveMotor.setBrakeMode(true);
     }
     
     /**
