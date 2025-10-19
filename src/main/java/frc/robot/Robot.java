@@ -43,7 +43,15 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    if (m_controller.getSquareButtonPressed()) {
+        m_swerve.resetFieldRelativeDirection();
+    }
+
+    if (m_controller.getCrossButton()) {
+        m_swerve.setX();
+    } else {
     driveWithJoystick(true);
+    }
     // manualControl();
   }
 
