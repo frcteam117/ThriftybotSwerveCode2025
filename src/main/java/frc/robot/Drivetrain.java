@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -18,9 +19,25 @@ import frc.robot.generated.SwerveConstants;
 import frc.robot.generated.SwerveConstants.ModuleConstants;
 import java.util.function.Supplier;
 
+import com.gos.lib.properties.pid.PidProperty;
+import com.gos.lib.properties.pid.WpiPidPropertyBuilder;
+
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain {
     public static final double kMaxAngularSpeed = Math.PI; // 1/2 rotation per second
+    private Rotation2d zeroRotation = Rotation2d.kZero;
+    private Rotation2d targetRotation = Rotation2d.kZero;
+    private PIDController rotationPID = new PIDController(
+        0.5,
+        0, 
+        0.02);
+    private PidProperty rotPidProperty = new WpiPidPropertyBuilder("Drivettrain Rotation PID", false, rotationPID)
+    .addP(0.5)
+    .addI(0)
+    .addD(0.02)
+    .addMaxVelocity(kMaxAngularSpeed/2)
+    .addMaxAcceleration(Math.PI)
+    .build();
 
     private final SwerveModule m_frontLeft = new SwerveModule(
         ModuleConstants.FRONT_LEFT_DRIVE_MOTOR_ID, 
@@ -93,9 +110,15 @@ public class Drivetrain {
      * @param periodSeconds The loop period (dt).
      */
     public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, double periodSeconds) {
+        if (rot == 0) {
+            rot += rotationPID.calculate(getGyroAngle().getRadians(), targetRotation.getRadians());
+        } else {
+            targetRotation = getGyroAngle();
+        }
+
         ChassisSpeeds speeds = fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, m_gyroSupplier.get())
-            : new ChassisSpeeds(xSpeed, ySpeed, rot);
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getGyroAngle())
+            : ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, getGyroAngle().minus(targetRotation));
 
         var swerveModuleStates = m_kinematics.toSwerveModuleStates(
             ChassisSpeeds.discretize(speeds, periodSeconds));
@@ -116,6 +139,10 @@ public class Drivetrain {
                 swerveModuleStates[3],
             }
         );
+    }
+
+    public Rotation2d getGyroAngle() {
+        return m_gyroSupplier.get().unaryMinus().minus(zeroRotation);
     }
 
     /** Updates the field relative position of the robot. */
@@ -189,6 +216,8 @@ public class Drivetrain {
     public void periodic() {
         // Update odometry
         updateOdometry();
+
+        rotPidProperty.updateIfChanged();
         
         // Update module calibration info on SmartDashboard (no parameters needed)
         m_frontLeft.updateSmartDashboard();

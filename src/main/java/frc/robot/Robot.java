@@ -21,6 +21,7 @@ public class Robot extends TimedRobot {
   // private final XboxController m_controller = new XboxController(0);
   private final PS5Controller m_controller = new PS5Controller(0);
   AHRS gyro = new AHRS(NavXComType.kUSB1);
+  boolean driveFieldRelative = true;
 
   private final Drivetrain m_swerve = new Drivetrain(() -> Rotation2d.fromDegrees(gyro.getYaw()), new Pose2d());  // private final SimDrivetrain m_simSwerve = new SimDrivetrain(new Pose2d());
 
@@ -43,7 +44,21 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    driveWithJoystick(true);
+    if (m_controller.getSquareButtonPressed()) {
+        m_swerve.resetFieldRelativeDirection();
+    }
+
+    if (m_controller.getCircleButtonPressed()) {
+        driveFieldRelative = driveFieldRelative == true ?  false : true;
+    }
+
+    if (m_controller.getCrossButton()) {
+        m_swerve.setX();
+    } else {
+    driveWithJoystick(driveFieldRelative);
+    }
+
+    
     // manualControl();
   }
 
