@@ -9,6 +9,7 @@ import com.thethriftybot.ThriftyNova.ExternalEncoder;
 import com.thethriftybot.ThriftyNova.MotorType;
 import com.thethriftybot.ThriftyNova.PIDSlot;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -18,7 +19,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.generated.SwerveConstants;
 import frc.robot.generated.SwerveConstants.ModuleConstants;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.gos.lib.properties.GosDoubleProperty;
+import com.gos.lib.properties.HeavyDoubleProperty;
 import com.gos.lib.properties.pid.PidProperty;
 import com.gos.lib.properties.pid.WpiPidPropertyBuilder;
 
@@ -37,15 +42,29 @@ public class SwerveModule {
     
     // PID controller for Thrifty encoder (RIO-side control)
     private final PIDController m_turningPID = new PIDController(0.02, 0.0, 0.01);
+    private final PIDController m_drivingPID = new PIDController(0.0004, 0.0, 0.0);
 
-    private final PidProperty pidProperties = new WpiPidPropertyBuilder("Swerve Turning PID", false, m_turningPID).
-    addP(0.07)
+    private final PidProperty azimuthPIDProperty
+     = new WpiPidPropertyBuilder("Swerve Azimuth PID", false, m_turningPID).
+    addP(0.65)
     .addD(0)
     .addI(0)
     .build();
+
+    private final PidProperty drivePIDProperty;
+    //  = new WpiPidPropertyBuilder("Swerve Drive PID", false, m_drivingPID).
+    // addP(0.0004)
+    // .addD(0)
+    // .addI(0)
+    // .addFF(1.0 / DRIVE_MOTOR_RPM_TO_MPS * 4)
+    // .build();
     
     // Flag to track if we've checked for saved offsets yet (avoids blocking during init)
     private boolean m_hasCheckedSavedOffset = false;
+
+    // Azimuth motor constants
+    private final double m_zeroRotationRadians;
+    private static final double m_azimuthRadiansPerStatorRotations = (2 * Math.PI / 25);
     
     // Drive motor conversion factors
     private static final double DRIVE_MOTOR_ROTATIONS_TO_METERS = 
@@ -58,6 +77,7 @@ public class SwerveModule {
         
         m_moduleName = moduleName;
         m_encoderTicksPerRevolution = encoderTicksPerRevolution;
+        m_zeroRotationRadians = encoderOffsetTicks * 2 * Math.PI / encoderTicksPerRevolution;
         
         // Initialize motors
         m_driveMotor = new ThriftyNova(driveMotorId, MotorType.NEO);
@@ -67,6 +87,20 @@ public class SwerveModule {
         configureDriveMotor();
         configureAzimuthMotor();
         initializeOffset(encoderOffsetTicks);
+
+        // List<HeavyDoubleProperty> azimuthPIDProperties = new ArrayList<>();
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((p) -> m_azimuthMotor.pid0.setP(p), new GosDoubleProperty(false, "azimuthPID/kp", 0.07)));
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((i) -> m_azimuthMotor.pid0.setI(i), new GosDoubleProperty(false, "azimuthPID/ki", 0.0)));
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((d) -> m_azimuthMotor.pid0.setD(d), new GosDoubleProperty(false, "azimuthPID/kd", 0.0)));
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((ff) -> m_azimuthMotor.pid0.setFF(ff), new GosDoubleProperty(false, "azimuthPID/kff", 0.0)));
+        // azimuthPIDProperty = new PidProperty(azimuthPIDProperties);
+
+        List<HeavyDoubleProperty> drivePIDProperties = new ArrayList<>();
+        drivePIDProperties.add(new HeavyDoubleProperty((p) -> m_driveMotor.pid0.setP(p), new GosDoubleProperty(false, "drivePID/kp", 0.0001)));
+        drivePIDProperties.add(new HeavyDoubleProperty((i) -> m_driveMotor.pid0.setI(i), new GosDoubleProperty(false, "drivePID/ki", 0.0)));
+        drivePIDProperties.add(new HeavyDoubleProperty((d) -> m_driveMotor.pid0.setD(d), new GosDoubleProperty(false, "drivePID/kd", 0.0)));
+        drivePIDProperties.add(new HeavyDoubleProperty((ff) -> m_driveMotor.pid0.setFF(ff), new GosDoubleProperty(false, "drivePID/kff", 0.00025)));
+        drivePIDProperty = new PidProperty(drivePIDProperties);
         
         // Configure turning PID for continuous input (-180 to 180 degrees)
         m_turningPID.enableContinuousInput(-Math.PI, Math.PI);
@@ -86,7 +120,7 @@ public class SwerveModule {
         m_driveMotor.usePIDSlot(PIDSlot.SLOT0);
         m_driveMotor.setBrakeMode(true);
     }
-    
+
     /**
      * Configure the azimuth motor based on encoder type
      */
@@ -198,14 +232,12 @@ public class SwerveModule {
         desiredState.optimize(currentAngle);
         
         // Set drive motor velocity
-        double targetVelocityRPM = desiredState.speedMetersPerSecond;
-        m_driveMotor.set(targetVelocityRPM / SwerveConstants.TOP_SPEED_METERS_PER_SEC);
+        m_driveMotor.setVelocityInternal(desiredState.speedMetersPerSecond / DRIVE_MOTOR_RPM_TO_MPS);
+        // double targetVelocityRPM = desiredState.speedMetersPerSecond;
+        // m_driveMotor.set(targetVelocityRPM / SwerveConstants.TOP_SPEED_METERS_PER_SEC);
         
         // Set azimuth motor position
         setAzimuthPosition(desiredState.angle.getRadians());
-
-
-        pidProperties.updateIfChanged();
     }
     
     /**
@@ -217,6 +249,12 @@ public class SwerveModule {
             double currentAngle = getEncoderPosition();
             double output = m_turningPID.calculate(currentAngle, targetAngleRadians);
             m_azimuthMotor.set(output);
+            
+            // double setpoint =
+            //         (MathUtil.inputModulus(targetAngleRadians + m_zeroRotationRadians, 0, 2 * Math.PI)
+            //                         + (m_azimuthMotor.getPositionInternal() * m_azimuthRadiansPerStatorRotations) - ticksToRadians(getRawEncoderTicks()))
+            //                 / m_azimuthRadiansPerStatorRotations;
+            // m_azimuthMotor.setPositionInternal(setpoint);
         } else {
             // Use motor controller position control for other encoders
             // Motor controller handles offset automatically, so just convert angle to ticks
@@ -302,6 +340,9 @@ public class SwerveModule {
             SmartDashboard.putString("Last Zeroed", m_moduleName + " at " + 
                                    String.format("%.2f", Math.toDegrees(getEncoderPosition())) + "°");
         }
+
+        azimuthPIDProperty.updateIfChanged();
+        drivePIDProperty.updateIfChanged();
     }
     
     // Utility methods for unit conversions

@@ -25,9 +25,9 @@ public class Robot extends TimedRobot {
   private final Drivetrain m_swerve = new Drivetrain(() -> Rotation2d.fromDegrees(gyro.getYaw()), new Pose2d());  // private final SimDrivetrain m_simSwerve = new SimDrivetrain(new Pose2d());
 
   // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
-  private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(20);
-  private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(20);
-  private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(20);
+  private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
+  private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
+  private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9);
 
   @Override
   public void robotPeriodic() {
@@ -43,7 +43,15 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    if (m_controller.getSquareButtonPressed()) {
+        m_swerve.resetFieldRelativeDirection();
+    }
+
+    if (m_controller.getCrossButton()) {
+        m_swerve.setX();
+    } else {
     driveWithJoystick(true);
+    }
     // manualControl();
   }
 

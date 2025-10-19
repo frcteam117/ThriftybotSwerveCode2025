@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 /** Represents a swerve drive style drivetrain. */
 public class Drivetrain {
     public static final double kMaxAngularSpeed = Math.PI; // 1/2 rotation per second
+    private Rotation2d zeroRotation = Rotation2d.kZero;
 
     private final SwerveModule m_frontLeft = new SwerveModule(
         ModuleConstants.FRONT_LEFT_DRIVE_MOTOR_ID, 
@@ -94,7 +95,7 @@ public class Drivetrain {
      */
     public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, double periodSeconds) {
         ChassisSpeeds speeds = fieldRelative
-            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, m_gyroSupplier.get())
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot, m_gyroSupplier.get().unaryMinus().minus(zeroRotation))
             : new ChassisSpeeds(xSpeed, ySpeed, rot);
 
         var swerveModuleStates = m_kinematics.toSwerveModuleStates(
@@ -281,5 +282,9 @@ public class Drivetrain {
         m_frontRight.driveManual(forward, rotation);
         m_backLeft.driveManual(forward, rotation);
         m_backRight.driveManual(forward, rotation);
+    }
+
+    public void resetFieldRelativeDirection() {
+        zeroRotation = m_gyroSupplier.get().unaryMinus();
     }
 }
