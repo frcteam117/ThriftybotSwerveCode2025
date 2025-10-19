@@ -311,4 +311,8 @@ public class Drivetrain {
         m_backLeft.driveManual(forward, rotation);
         m_backRight.driveManual(forward, rotation);
     }
+
+    public void resetFieldRelativeDirection() {
+        zeroRotation = m_gyroSupplier.get().unaryMinus();
+    }
 }
