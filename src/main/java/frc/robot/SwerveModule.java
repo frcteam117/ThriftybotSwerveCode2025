@@ -44,12 +44,12 @@ public class SwerveModule {
     private final PIDController m_turningPID = new PIDController(0.02, 0.0, 0.01);
     private final PIDController m_drivingPID = new PIDController(0.0004, 0.0, 0.0);
 
-    private final PidProperty azimuthPIDProperty;
-    //  = new WpiPidPropertyBuilder("Swerve Azimuth PID", false, m_turningPID).
-    // addP(0.07)
-    // .addD(0)
-    // .addI(0)
-    // .build();
+    private final PidProperty azimuthPIDProperty
+     = new WpiPidPropertyBuilder("Swerve Azimuth PID", false, m_turningPID).
+    addP(0.65)
+    .addD(0)
+    .addI(0)
+    .build();
 
     private final PidProperty drivePIDProperty;
     //  = new WpiPidPropertyBuilder("Swerve Drive PID", false, m_drivingPID).
@@ -88,18 +88,18 @@ public class SwerveModule {
         configureAzimuthMotor();
         initializeOffset(encoderOffsetTicks);
 
-        List<HeavyDoubleProperty> azimuthPIDProperties = new ArrayList<>();
-        azimuthPIDProperties.add(new HeavyDoubleProperty((p) -> m_azimuthMotor.pid0.setP(p), new GosDoubleProperty(false, "azimuthPID/kp", 0.07)));
-        azimuthPIDProperties.add(new HeavyDoubleProperty((i) -> m_azimuthMotor.pid0.setI(i), new GosDoubleProperty(false, "azimuthPID/ki", 0.0)));
-        azimuthPIDProperties.add(new HeavyDoubleProperty((d) -> m_azimuthMotor.pid0.setD(d), new GosDoubleProperty(false, "azimuthPID/kd", 0.0)));
-        azimuthPIDProperties.add(new HeavyDoubleProperty((ff) -> m_azimuthMotor.pid0.setFF(ff), new GosDoubleProperty(false, "azimuthPID/kff", 0.0)));
-        azimuthPIDProperty = new PidProperty(azimuthPIDProperties);
+        // List<HeavyDoubleProperty> azimuthPIDProperties = new ArrayList<>();
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((p) -> m_azimuthMotor.pid0.setP(p), new GosDoubleProperty(false, "azimuthPID/kp", 0.07)));
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((i) -> m_azimuthMotor.pid0.setI(i), new GosDoubleProperty(false, "azimuthPID/ki", 0.0)));
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((d) -> m_azimuthMotor.pid0.setD(d), new GosDoubleProperty(false, "azimuthPID/kd", 0.0)));
+        // azimuthPIDProperties.add(new HeavyDoubleProperty((ff) -> m_azimuthMotor.pid0.setFF(ff), new GosDoubleProperty(false, "azimuthPID/kff", 0.0)));
+        // azimuthPIDProperty = new PidProperty(azimuthPIDProperties);
 
         List<HeavyDoubleProperty> drivePIDProperties = new ArrayList<>();
-        drivePIDProperties.add(new HeavyDoubleProperty((p) -> m_driveMotor.pid0.setP(p), new GosDoubleProperty(false, "drivePID/kp", 0.07)));
+        drivePIDProperties.add(new HeavyDoubleProperty((p) -> m_driveMotor.pid0.setP(p), new GosDoubleProperty(false, "drivePID/kp", 0.0001)));
         drivePIDProperties.add(new HeavyDoubleProperty((i) -> m_driveMotor.pid0.setI(i), new GosDoubleProperty(false, "drivePID/ki", 0.0)));
         drivePIDProperties.add(new HeavyDoubleProperty((d) -> m_driveMotor.pid0.setD(d), new GosDoubleProperty(false, "drivePID/kd", 0.0)));
-        drivePIDProperties.add(new HeavyDoubleProperty((ff) -> m_driveMotor.pid0.setFF(ff), new GosDoubleProperty(false, "drivePID/kff", 1.0 / DRIVE_MOTOR_RPM_TO_MPS * 4)));
+        drivePIDProperties.add(new HeavyDoubleProperty((ff) -> m_driveMotor.pid0.setFF(ff), new GosDoubleProperty(false, "drivePID/kff", 0.00025)));
         drivePIDProperty = new PidProperty(drivePIDProperties);
         
         // Configure turning PID for continuous input (-180 to 180 degrees)
@@ -246,15 +246,15 @@ public class SwerveModule {
     private void setAzimuthPosition(double targetAngleRadians) {
         if (ModuleConstants.ENCODER_SELECTED == SwerveConstants.EncoderType.Thrifty_Absolute_Encoder) {
             // Use RIO PID controller for Thrifty encoder
-            // double currentAngle = getEncoderPosition();
-            // double output = m_turningPID.calculate(currentAngle, targetAngleRadians);
-            // m_azimuthMotor.set(output);
+            double currentAngle = getEncoderPosition();
+            double output = m_turningPID.calculate(currentAngle, targetAngleRadians);
+            m_azimuthMotor.set(output);
             
-            double setpoint =
-                    (MathUtil.inputModulus(targetAngleRadians + m_zeroRotationRadians, 0, 2 * Math.PI)
-                                    + (m_azimuthMotor.getPositionInternal() * m_azimuthRadiansPerStatorRotations) - ticksToRadians(getRawEncoderTicks()))
-                            / m_azimuthRadiansPerStatorRotations;
-            m_azimuthMotor.setPositionInternal(setpoint);
+            // double setpoint =
+            //         (MathUtil.inputModulus(targetAngleRadians + m_zeroRotationRadians, 0, 2 * Math.PI)
+            //                         + (m_azimuthMotor.getPositionInternal() * m_azimuthRadiansPerStatorRotations) - ticksToRadians(getRawEncoderTicks()))
+            //                 / m_azimuthRadiansPerStatorRotations;
+            // m_azimuthMotor.setPositionInternal(setpoint);
         } else {
             // Use motor controller position control for other encoders
             // Motor controller handles offset automatically, so just convert angle to ticks
