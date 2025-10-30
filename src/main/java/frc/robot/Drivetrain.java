@@ -32,11 +32,11 @@ public class Drivetrain {
         0, 
         0.02);
     private PidProperty rotPidProperty = new WpiPidPropertyBuilder("Drivettrain Rotation PID", false, rotationPID)
-    .addP(0.5)
+    .addP(3)
     .addI(0)
     .addD(0.02)
-    .addMaxVelocity(kMaxAngularSpeed/2)
-    .addMaxAcceleration(Math.PI)
+    // .addMaxVelocity(kMaxAngularSpeed/2)
+    // .addMaxAcceleration(Math.PI)
     .build();
 
     private final SwerveModule m_frontLeft = new SwerveModule(
@@ -87,6 +87,7 @@ public class Drivetrain {
      */
     public Drivetrain(Supplier<Rotation2d> gyroSupplier, Pose2d initialPose) {
         this.m_gyroSupplier = gyroSupplier;
+        resetFieldRelativeDirection();
 
         m_odometry = new SwerveDriveOdometry(
             m_kinematics,
@@ -242,6 +243,7 @@ public class Drivetrain {
         
         // Gyro information
         SmartDashboard.putNumber("Gyro Angle (deg)", m_gyroSupplier.get().getDegrees());
+        SmartDashboard.putNumber("targetRotation", targetRotation.getDegrees());
         
         // Current chassis speeds
         ChassisSpeeds speeds = getChassisSpeeds();
@@ -314,5 +316,8 @@ public class Drivetrain {
 
     public void resetFieldRelativeDirection() {
         zeroRotation = m_gyroSupplier.get().unaryMinus();
+        targetRotation = Rotation2d.kZero;
     }
+
+    
 }
