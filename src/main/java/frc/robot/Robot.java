@@ -51,7 +51,7 @@ public class Robot extends TimedRobot {
   Timer timer;
   //Timer timer = new Timer();
 
-  List<Integer> aprilTagIDs = Arrays.asList(6, 7);
+  List<Integer> aprilTagIDs = Arrays.asList(22, 14);
   int curAprilTagID;
 
   double targetYaw;
@@ -60,7 +60,7 @@ public class Robot extends TimedRobot {
   double pathTimerStop;
 
   public Robot () {
-    Timer timer = new Timer();
+    timer = new Timer();
     kPVision_Turn = -.03;
     targetYaw = (0.0);
     camera = new PhotonCamera("PC_Camera");
@@ -142,7 +142,7 @@ public class Robot extends TimedRobot {
         // And, tag 7 is in sight, so we can turn toward it.
         // Override the driver's turn command with an automatic one that turns toward the tag.
         //rotation = pid.calculate(targetYaw, 0);
-        SmartDashboard.putBoolean("", true);
+        SmartDashboard.putBoolean("targetVisible", true);
         fieldRelative = false;
 
         if (targetRange > 2) {
@@ -159,21 +159,24 @@ public class Robot extends TimedRobot {
         else {
             List<Double> values = PathUtil.getValuesFromTagID(curAprilTagID);
             pathTimerStop = values.get(3);
-            if (!timer.hasElapsed(0.01)) { // can 0.01 be 0? idk. who knows
-                timer.start(); // Start the timer when autonomous begins
-            }
-            if (!timer.hasElapsed(pathTimerStop)) {
-                setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
-            }
-            else if (timer.hasElapsed(0.01)) {
-                pathTimerStop = 0.0;
-                timer.stop(); 
+            if (pathTimerStop == 0.0) {}
+            else {
+                if (!timer.hasElapsed(0.01)) { // can 0.01 be 0? idk. who knows
+                    timer.start(); // Start the timer when autonomous begins
+                }
+                if (!timer.hasElapsed(pathTimerStop)) {
+                    setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
+                }
+                else if (timer.hasElapsed(0.01)) {
+                    pathTimerStop = 0.0;
+                    timer.stop(); 
+                }
             }
             //setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
         }
     }
     else {
-        //setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
+        setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
     }
   }
  

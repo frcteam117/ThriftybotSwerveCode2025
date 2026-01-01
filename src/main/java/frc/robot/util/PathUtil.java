@@ -25,7 +25,7 @@ public class PathUtil {
   private static final double DEADBAND = 0.1;
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   */
-  private PathUtil() {}
+  private PathUtil() {} // ADD WAY TO HAVE MULTIPLE PATHS FOR ONE APRILTAG???? MORE ARRAYS IDK
   
   public static List<Double> getValuesFromTagID(int aprilTagID) {
     // commands for each tag:
