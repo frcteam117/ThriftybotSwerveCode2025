@@ -33,6 +33,7 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;   
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.PhotonUtils;
 
 public class Robot extends TimedRobot {
@@ -46,12 +47,13 @@ public class Robot extends TimedRobot {
   private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
   private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
   private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9);
-
-  PhotonCamera camera;
+    // code problems: only when both cameras are used 2gether
+  PhotonCamera camera0; // needs callibrated
+  PhotonCamera camera2;
   Timer timer;
   //Timer timer = new Timer();
 
-  List<Integer> aprilTagIDs = Arrays.asList(22, 14);
+  List<Integer> aprilTagIDs = Arrays.asList(1, 2);
   int curAprilTagID;
 
   double targetYaw;
@@ -63,7 +65,8 @@ public class Robot extends TimedRobot {
     timer = new Timer();
     kPVision_Turn = -.03;
     targetYaw = (0.0);
-    camera = new PhotonCamera("PC_Camera");
+    camera0 = new PhotonCamera("PC_Camera0");
+    camera2 = new PhotonCamera("PC_Camera2");
   }
   @Override
   public void robotPeriodic() {
@@ -109,32 +112,46 @@ public class Robot extends TimedRobot {
   private void driveWithJoystick(boolean fieldRelative) {
     boolean targetVisible = false;
     // Read in relevant data from the Camera
-    var results = camera.getAllUnreadResults();
-    if (!results.isEmpty()) {
-        // Camera processed a new frame since last
-        // Get the last one in the list.
-        var result = results.get(results.size() - 1);
-        if (result.hasTargets()) {
-            // At least one AprilTag was seen by the camera
-            for (var target : result.getTargets()) {
-                if (aprilTagIDs.contains(target.getFiducialId())) { 
-                    // found one of the tags in aprilTagIDs
-                    curAprilTagID = target.getFiducialId();
-                    targetYaw = target.getYaw();
-                    targetVisible = true;
-                    System.out.println(target.getYaw());
-                    targetRange =
-                                PhotonUtils.calculateDistanceToTargetMeters( // THESE NEED TO BE TUNED???
-                                        0.5   , // Measured with a tape measure, or in CAD.
-                                        1.435, // From 2024 game manual for ID 22, CHANGE IF U WANT TS TO WORK
-                                        Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
-                                        Units.degreesToRadians(target.getPitch()));
+    var results = Arrays.asList(camera0.getAllUnreadResults(),camera2.getAllUnreadResults());
+
+    for (int i = 0; i < results.size(); i++) { // looping through results of each camera, with this system camera2 has priority, see if you need to coordinate
+        // - it so all cameras combine results or if this system works - THIS IS THE PROBLEM THIS NEVER RETURNS TARGET AND VISIBLE <---------
+        if (!results.get(i).isEmpty()) {// Camera processed a new frame since last
+            // Get the last one in the list.
+            var result = results.get(i).get(results.get(i).size() - 1);
+           // SmartDashboard.putNumber("Target tag ID", (result.getTargets().get(result.getTargets().size)-1));
+            SmartDashboard.putBoolean("result.hasTargets()", result.hasTargets());
+            if (result.hasTargets()) {
+                // At least one AprilTag was seen by the camera - should be getting thru to here on/off but still yes
+                for (var target : result.getTargets()) {
+                    if (aprilTagIDs.contains(target.getFiducialId())) { 
+                        // found one of the tags in aprilTagIDs
+                        curAprilTagID = target.getFiducialId();
+                        targetYaw = target.getYaw();
+                        targetVisible = true;
+                        SmartDashboard.putNumber("Target tag ID", curAprilTagID);
+                        SmartDashboard.putNumber("tag vis on camera #",i);
+                        System.out.println(target.getYaw());
+                        targetRange =
+                                    PhotonUtils.calculateDistanceToTargetMeters( // THESE NEED TO BE TUNED???
+                                            0.5   , // Measured with a tape measure, or in CAD.
+                                            1.435, // From 2024 game manual for ID 22, CHANGE IF U WANT TS TO WORK
+                                            Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
+                                            Units.degreesToRadians(target.getPitch()));
+                    }
                 }
             }
         }
     }
 
 
+    if (m_controller.getSquareButton()) {
+        SmartDashboard.putBoolean("squarebutton down", true);
+    }
+    else {
+        SmartDashboard.putBoolean("squarebutton down", false);
+    }
+    SmartDashboard.putBoolean("target visible", targetVisible);
 
     // Auto-align when requested
     if (m_controller.getSquareButton() && targetVisible) {
@@ -142,10 +159,11 @@ public class Robot extends TimedRobot {
         // And, tag 7 is in sight, so we can turn toward it.
         // Override the driver's turn command with an automatic one that turns toward the tag.
         //rotation = pid.calculate(targetYaw, 0);
-        SmartDashboard.putBoolean("targetVisible", true);
+        //SmartDashboard.putBoolean("targetVisible", true);
         fieldRelative = false;
 
         if (targetRange > 2) {
+            SmartDashboard.putBoolean("aligning to tag",true);
             double xSpeed =
                 -m_xspeedLimiter.calculate(MathUtil.applyDeadband(targetRange * 0.5, 0.03)) // CONFIGURE STUFF SO U CAN TEST IF TS WORKS W/ SWERVE!!!!!
                 * SwerveConstants.TOP_SPEED_METERS_PER_SEC
@@ -158,18 +176,23 @@ public class Robot extends TimedRobot {
         }
         else {
             List<Double> values = PathUtil.getValuesFromTagID(curAprilTagID);
-            pathTimerStop = values.get(3);
+            SmartDashboard.putBoolean("doing tag path", true);
+            System.out.println(values);
+            pathTimerStop = values.get(3); // DEBUG TIMER IT STOPS AFTER ONE RUN FOR EACH TAG <--------------------
             if (pathTimerStop == 0.0) {}
             else {
-                if (!timer.hasElapsed(0.01)) { // can 0.01 be 0? idk. who knows
-                    timer.start(); // Start the timer when autonomous begins
+                if (!timer.isRunning()) { // check if timer has already been started
+                    timer.start();
+                    //System.out.println("timer.start()");
                 }
                 if (!timer.hasElapsed(pathTimerStop)) {
                     setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
+                    //System.out.println("doing path at "+timer.get());
                 }
-                else if (timer.hasElapsed(0.01)) {
+                else if (timer.isRunning()) {
                     pathTimerStop = 0.0;
-                    timer.stop(); 
+                    timer.stop();
+                    //System.out.println("timer.stop() at "+timer.get());
                 }
             }
             //setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
