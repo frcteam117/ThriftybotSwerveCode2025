@@ -27,20 +27,22 @@ public class PathUtil {
   */
   private PathUtil() {} // ADD WAY TO HAVE MULTIPLE PATHS FOR ONE APRILTAG???? MORE ARRAYS IDK
   
-  public static List<Double> getValuesFromTagID(int aprilTagID) {
+  public static List<List<Double>> getValuesFromTagID(int aprilTagID) {
     // commands for each tag:
-    //6
-    if (aprilTagID == 22) {
-      List<Double> values = Arrays.asList(0.2,0.2,0.2,2.0);
+    //1
+    if (aprilTagID == 1) {
+      List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.2,0.2,2.0),Arrays.asList(0.2,0.0,0.2,2.0)); // 2 movements
       return values;
     }
-    //7
-    if (aprilTagID == 14) {
-      List<Double> values = Arrays.asList(0.0,0.4,0.0,4.0);
+    //2
+    if (aprilTagID == 2) {
+      List<List<Double>> values = Arrays.asList(Arrays.asList(0.2,0.0,0.2,2.0),Arrays.asList(0.0,0.2,0.2,2.0),Arrays.asList(0.2,0.2,0.0,2.0));
+      // - 3 movements ^^^
+      //List<List<Double>> thing = Arrays.asList(Arrays.asList(0.2,0.0,0.2,4.0));
       return values;
     }
     else {
-      List<Double> values = Arrays.asList(0.0,0.0,0.0,0.0);
+      List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0)); // one list but 0 movements
       return values;
     }
     // other tags vvv

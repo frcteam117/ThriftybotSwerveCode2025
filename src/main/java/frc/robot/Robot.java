@@ -61,7 +61,9 @@ public class Robot extends TimedRobot {
   double kPVision_Turn;
   double pathTimerStop;
 
-  int curPathStep = 0;
+  int curPathStep = 1;
+  boolean pathRunning = false;
+  int totalPathSteps = 0;
 
   public Robot () {
     timer = new Timer();
@@ -112,123 +114,144 @@ public class Robot extends TimedRobot {
   }
 
   private void driveWithJoystick(boolean fieldRelative) {
-    boolean targetVisible = false;
-    // Read in relevant data from the Camera
-    var results = Arrays.asList(camera0.getAllUnreadResults(),camera2.getAllUnreadResults());
+        boolean targetVisible = false;
+        // Read in relevant data from the Camera
+        var results = Arrays.asList(camera0.getAllUnreadResults(),camera2.getAllUnreadResults());
 
-    for (int i = 0; i < results.size(); i++) { // looping through results of each camera, with this system camera2 has priority, see if you need to coordinate
-        // - it so all cameras combine results or if this system works - THIS IS THE PROBLEM THIS NEVER RETURNS TARGET AND VISIBLE <---------
-        if (!results.get(i).isEmpty()) {// Camera processed a new frame since last
-            // Get the last one in the list.
-            var result = results.get(i).get(results.get(i).size() - 1);
-           // SmartDashboard.putNumber("Target tag ID", (result.getTargets().get(result.getTargets().size)-1));
-            SmartDashboard.putBoolean("result.hasTargets()", result.hasTargets());
-            if (result.hasTargets()) {
-                // At least one AprilTag was seen by the camera - should be getting thru to here on/off but still yes
-                for (var target : result.getTargets()) {
-                    if (aprilTagIDs.contains(target.getFiducialId())) { 
-                        // found one of the tags in aprilTagIDs
-                        curAprilTagID = target.getFiducialId();
-                        targetYaw = target.getYaw();
-                        targetVisible = true;
-                        SmartDashboard.putNumber("Target tag ID", curAprilTagID);
-                        SmartDashboard.putNumber("tag vis on camera #",i);
-                        System.out.println(target.getYaw());
-                        targetRange =
-                                    PhotonUtils.calculateDistanceToTargetMeters( // THESE NEED TO BE TUNED???
-                                            0.5   , // Measured with a tape measure, or in CAD.
-                                            1.435, // From 2024 game manual for ID 22, CHANGE IF U WANT TS TO WORK
-                                            Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
-                                            Units.degreesToRadians(target.getPitch()));
+        for (int i = 0; i < results.size(); i++) { // looping through results of each camera, with this system camera2 has priority, see if you need to coordinate
+            // - it so all cameras combine results or if this system works - THIS IS THE PROBLEM THIS NEVER RETURNS TARGET AND VISIBLE <---------
+            if (!results.get(i).isEmpty()) {// Camera processed a new frame since last
+                // Get the last one in the list.
+                var result = results.get(i).get(results.get(i).size() - 1);
+            // SmartDashboard.putNumber("Target tag ID", (result.getTargets().get(result.getTargets().size)-1));
+                SmartDashboard.putBoolean("result.hasTargets()", result.hasTargets());
+                if (result.hasTargets()) {
+                    // At least one AprilTag was seen by the camera - should be getting thru to here on/off but still yes
+                    for (var target : result.getTargets()) {
+                        if (aprilTagIDs.contains(target.getFiducialId())) { 
+                            // found one of the tags in aprilTagIDs
+                            curAprilTagID = target.getFiducialId();
+                            targetYaw = target.getYaw();
+                            targetVisible = true;
+                            SmartDashboard.putNumber("Target tag ID", curAprilTagID);
+                            SmartDashboard.putNumber("tag vis on camera #",i);
+                            System.out.println(target.getYaw());
+                            targetRange =
+                                        PhotonUtils.calculateDistanceToTargetMeters( // THESE NEED TO BE TUNED???
+                                                0.5   , // Measured with a tape measure, or in CAD.
+                                                1.435, // From 2024 game manual for ID 22, CHANGE IF U WANT TS TO WORK
+                                                Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
+                                                Units.degreesToRadians(target.getPitch()));
+                        }
                     }
                 }
             }
         }
-    }
 
 
-    if (m_controller.getSquareButton()) {
-        SmartDashboard.putBoolean("squarebutton down", true);
-    }
-    else {
-        SmartDashboard.putBoolean("squarebutton down", false);
-    }
-    SmartDashboard.putBoolean("target visible", targetVisible);
-
-    // Auto-align when requested
-    if (m_controller.getSquareButton()) {
-        // Driver wants auto-alignment to tag 7
-        // And, tag 7 is in sight, so we can turn toward it.
-        // Override the driver's turn command with an automatic one that turns toward the tag.
-        //rotation = pid.calculate(targetYaw, 0);
-        //SmartDashboard.putBoolean("targetVisible", true);
-        fieldRelative = false;
-
-        if (targetRange > 2 && targetVisible) {
-            SmartDashboard.putBoolean("aligning to tag",true);
-            double xSpeed =
-                -m_xspeedLimiter.calculate(MathUtil.applyDeadband(targetRange * 0.5, 0.03)) // CONFIGURE STUFF SO U CAN TEST IF TS WORKS W/ SWERVE!!!!!
-                * SwerveConstants.TOP_SPEED_METERS_PER_SEC
-                * 0.4;
-            double ySpeed =
-                -m_yspeedLimiter.calculate(MathUtil.applyDeadband(targetYaw * kPVision_Turn, 0.03))
-                * SwerveConstants.TOP_SPEED_METERS_PER_SEC
-                * 0.4;
-                setSwerve(xSpeed, ySpeed, 0, fieldRelative); // should rot be rot not 0 here?
+        if (m_controller.getSquareButton()) {
+            SmartDashboard.putBoolean("squarebutton down", true);
         }
         else {
-            if (targetVisible) {
-                List<Double> values = PathUtil.getValuesFromTagID(curAprilTagID);
-                SmartDashboard.putBoolean("doing tag path", true);
-                System.out.println(values);
-                pathTimerStop = values.get(3); // DEBUG TIMER IT STOPS AFTER ONE RUN FOR EACH TAG <--------------------
-                if (pathTimerStop == 0.0) {}
-                else {
-                    if (!timer.isRunning()) { // check if timer has already been started
-                        timer.start();
-                        //System.out.println("timer.start()");
-                    }
-                    if (!timer.hasElapsed(pathTimerStop)) {
-                        setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
-                        //System.out.println("doing path at "+timer.get());
-                    }
-                    else if (timer.isRunning()) {
-                        pathTimerStop = 0.0;
-                        timer.stop();
-                        //System.out.println("timer.stop() at "+timer.get());
+            SmartDashboard.putBoolean("squarebutton down", false);
+        }
+        SmartDashboard.putBoolean("target visible", targetVisible);
+
+        // Auto-align when requested
+        if (m_controller.getSquareButton()) {
+            // Driver wants auto-alignment to tag 7
+            // And, tag 7 is in sight, so we can turn toward it.
+            // Override the driver's turn command with an automatic one that turns toward the tag.
+            //rotation = pid.calculate(targetYaw, 0);
+            //SmartDashboard.putBoolean("targetVisible", true);
+            fieldRelative = false;
+
+            if (targetRange > 2 && targetVisible) {
+                SmartDashboard.putBoolean("aligning to tag",true);
+                double xSpeed =
+                    -m_xspeedLimiter.calculate(MathUtil.applyDeadband(targetRange * 0.5, 0.03)) // CONFIGURE STUFF SO U CAN TEST IF TS WORKS W/ SWERVE!!!!!
+                    * SwerveConstants.TOP_SPEED_METERS_PER_SEC
+                    * 0.4;
+                double ySpeed =
+                    -m_yspeedLimiter.calculate(MathUtil.applyDeadband(targetYaw * kPVision_Turn, 0.03))
+                    * SwerveConstants.TOP_SPEED_METERS_PER_SEC
+                    * 0.4;
+                    setSwerve(xSpeed, ySpeed, 0, fieldRelative); // should rot be rot not 0 here?
+            }
+            else {
+                if (targetVisible) {
+                    List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
+
+                    if (!(values.get(curPathStep).get(3) == 0)) {
+                        if (!pathRunning) {
+                            List<Double> curValues = values.get(curPathStep); // also idk
+                            totalPathSteps = values.size();
+                            curPathStep = 1;
+                            pathRunning = true;
+                            pathTimerStop = curValues.get(3); // does this need to be here? im tryna avoid a problem if this immediately goes to the bottom part next loop
+                        }
+                        else {  //if a path has been started
+                            List<Double> curValues = values.get(curPathStep);
+                            //
+                            SmartDashboard.putBoolean("doing tag path", true);
+                            System.out.println(curValues);
+                            pathTimerStop = curValues.get(3);
+                            if (pathTimerStop == 0.0) {}
+                            else {
+                                if (!timer.isRunning()) { // check if timer has already been started
+                                    timer.start();
+                                    //System.out.println("timer.start()");
+                                }
+                                if (!timer.hasElapsed(pathTimerStop)) {
+                                    setSwerve(curValues.get(0), curValues.get(1), curValues.get(2), fieldRelative);
+                                    //System.out.println("doing path at "+timer.get());
+                                }
+                                else if (timer.isRunning()) {
+                                    pathTimerStop = 0.0;
+                                    timer.stop();
+                                    //System.out.println("timer.stop() at "+timer.get());
+                                    if (curPathStep == totalPathSteps) {
+                                        curPathStep = 1;
+                                        pathRunning = false;
+                                    }
+                                    else {
+                                        curPathStep += 1;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                //setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
-            }
-            else { // fix logic???
-                List<Double> values = PathUtil.getValuesFromTagID(curAprilTagID);
-                if (pathTimerStop == 0.0) {}
-                else if (timer.isRunning()) {
-                    if (!timer.hasElapsed(pathTimerStop)) {
-                        setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
-                        //System.out.println("doing path at "+timer.get());
-                    }
-                    else {
-                        pathTimerStop = 0.0;
-                        timer.stop();
-                        //System.out.println("timer.stop() at "+timer.get());
+                else { // fix logic???
+                    List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
+                    List<Double> curValues = values.get(curPathStep);
+                    if (pathTimerStop == 0.0) {}
+                    else if (timer.isRunning()) {
+                        if (!timer.hasElapsed(pathTimerStop)) {
+                            setSwerve(curValues.get(0), curValues.get(1), curValues.get(2), fieldRelative);
+                            //System.out.println("doing path at "+timer.get());
+                        }
+                        else {
+                            pathTimerStop = 0.0;
+                            timer.stop();
+                            //System.out.println("timer.stop() at "+timer.get());
+                            if (curPathStep == totalPathSteps) {
+                                curPathStep = 1;
+                                pathRunning = false;
+                            }
+                            else {
+                                curPathStep += 1;
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-    else {
-        setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
-    }
+        else {
+            setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
+        }
   }
- 
   private void manualControl() {
    //m_swerve.manualDrive(m_controller.getLeftY(), m_controller.getRightX());
   }
 }
-/*possible multi-movement path code:
-    List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
-    int totalPathSteps = values.size();
-    curPathStep = 1; // maybe declare outside of this function? like at start so it can be accessed elswhere?
-
- */
