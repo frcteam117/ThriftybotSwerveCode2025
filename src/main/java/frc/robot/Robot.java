@@ -61,6 +61,8 @@ public class Robot extends TimedRobot {
   double kPVision_Turn;
   double pathTimerStop;
 
+  int curPathStep = 0;
+
   public Robot () {
     timer = new Timer();
     kPVision_Turn = -.03;
@@ -154,7 +156,7 @@ public class Robot extends TimedRobot {
     SmartDashboard.putBoolean("target visible", targetVisible);
 
     // Auto-align when requested
-    if (m_controller.getSquareButton() && targetVisible) {
+    if (m_controller.getSquareButton()) {
         // Driver wants auto-alignment to tag 7
         // And, tag 7 is in sight, so we can turn toward it.
         // Override the driver's turn command with an automatic one that turns toward the tag.
@@ -162,7 +164,7 @@ public class Robot extends TimedRobot {
         //SmartDashboard.putBoolean("targetVisible", true);
         fieldRelative = false;
 
-        if (targetRange > 2) {
+        if (targetRange > 2 && targetVisible) {
             SmartDashboard.putBoolean("aligning to tag",true);
             double xSpeed =
                 -m_xspeedLimiter.calculate(MathUtil.applyDeadband(targetRange * 0.5, 0.03)) // CONFIGURE STUFF SO U CAN TEST IF TS WORKS W/ SWERVE!!!!!
@@ -175,27 +177,44 @@ public class Robot extends TimedRobot {
                 setSwerve(xSpeed, ySpeed, 0, fieldRelative); // should rot be rot not 0 here?
         }
         else {
-            List<Double> values = PathUtil.getValuesFromTagID(curAprilTagID);
-            SmartDashboard.putBoolean("doing tag path", true);
-            System.out.println(values);
-            pathTimerStop = values.get(3); // DEBUG TIMER IT STOPS AFTER ONE RUN FOR EACH TAG <--------------------
-            if (pathTimerStop == 0.0) {}
-            else {
-                if (!timer.isRunning()) { // check if timer has already been started
-                    timer.start();
-                    //System.out.println("timer.start()");
+            if (targetVisible) {
+                List<Double> values = PathUtil.getValuesFromTagID(curAprilTagID);
+                SmartDashboard.putBoolean("doing tag path", true);
+                System.out.println(values);
+                pathTimerStop = values.get(3); // DEBUG TIMER IT STOPS AFTER ONE RUN FOR EACH TAG <--------------------
+                if (pathTimerStop == 0.0) {}
+                else {
+                    if (!timer.isRunning()) { // check if timer has already been started
+                        timer.start();
+                        //System.out.println("timer.start()");
+                    }
+                    if (!timer.hasElapsed(pathTimerStop)) {
+                        setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
+                        //System.out.println("doing path at "+timer.get());
+                    }
+                    else if (timer.isRunning()) {
+                        pathTimerStop = 0.0;
+                        timer.stop();
+                        //System.out.println("timer.stop() at "+timer.get());
+                    }
                 }
-                if (!timer.hasElapsed(pathTimerStop)) {
-                    setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
-                    //System.out.println("doing path at "+timer.get());
-                }
+                //setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
+            }
+            else { // fix logic???
+                List<Double> values = PathUtil.getValuesFromTagID(curAprilTagID);
+                if (pathTimerStop == 0.0) {}
                 else if (timer.isRunning()) {
-                    pathTimerStop = 0.0;
-                    timer.stop();
-                    //System.out.println("timer.stop() at "+timer.get());
+                    if (!timer.hasElapsed(pathTimerStop)) {
+                        setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
+                        //System.out.println("doing path at "+timer.get());
+                    }
+                    else {
+                        pathTimerStop = 0.0;
+                        timer.stop();
+                        //System.out.println("timer.stop() at "+timer.get());
+                    }
                 }
             }
-            //setSwerve(values.get(0), values.get(1), values.get(2), fieldRelative);
         }
     }
     else {
@@ -207,3 +226,9 @@ public class Robot extends TimedRobot {
    //m_swerve.manualDrive(m_controller.getLeftY(), m_controller.getRightX());
   }
 }
+/*possible multi-movement path code:
+    List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
+    int totalPathSteps = values.size();
+    curPathStep = 1; // maybe declare outside of this function? like at start so it can be accessed elswhere?
+
+ */
