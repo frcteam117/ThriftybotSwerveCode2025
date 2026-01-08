@@ -149,21 +149,25 @@ public class Robot extends TimedRobot {
         }
 
 
-        if (m_controller.getSquareButton()) {
-            SmartDashboard.putBoolean("squarebutton down", true);
+        if (m_controller.getTriangleButton()) {
+            SmartDashboard.putBoolean("triangle down", true);
+            setSwerve(1,1,1,fieldRelative);
+            SmartDashboard.putNumber("check #",0);
+            SmartDashboard.putBoolean("doing tag path", true);
         }
         else {
-            SmartDashboard.putBoolean("squarebutton down", false);
+            SmartDashboard.putBoolean("triangle down", false);
         }
         SmartDashboard.putBoolean("target visible", targetVisible);
 
         // Auto-align when requested
-        if (m_controller.getSquareButton()) {
+        if (m_controller.getTriangleButton()) {
             // Driver wants auto-alignment to tag 7
             // And, tag 7 is in sight, so we can turn toward it.
             // Override the driver's turn command with an automatic one that turns toward the tag.
             //rotation = pid.calculate(targetYaw, 0);
             //SmartDashboard.putBoolean("targetVisible", true);
+            SmartDashboard.putNumber("check #",1);
             fieldRelative = false;
 
             if (targetRange > 2 && targetVisible) {
