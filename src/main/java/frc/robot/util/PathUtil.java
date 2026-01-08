@@ -29,6 +29,10 @@ public class PathUtil {
   
   public static List<List<Double>> getValuesFromTagID(int aprilTagID) {
     // commands for each tag:
+    if (aprilTagID == 0) {
+      List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0)); // 2 movements
+      return values;
+    }
     //1
     if (aprilTagID == 1) {
       List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.2,0.2,2.0),Arrays.asList(0.2,0.0,0.2,2.0)); // 2 movements

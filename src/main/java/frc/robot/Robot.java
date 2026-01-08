@@ -54,7 +54,7 @@ public class Robot extends TimedRobot {
   //Timer timer = new Timer();
 
   List<Integer> aprilTagIDs = Arrays.asList(1, 2);
-  int curAprilTagID;
+  int curAprilTagID = 0;
 
   double targetYaw;
   double targetRange; // from photonvision docs
@@ -159,6 +159,9 @@ public class Robot extends TimedRobot {
             SmartDashboard.putBoolean("triangle down", false);
         }
         SmartDashboard.putBoolean("target visible", targetVisible);
+        if (!targetVisible) {
+            curAprilTagID = 0;
+        }
 
         // Auto-align when requested
         if (m_controller.getTriangleButton()) {
@@ -171,6 +174,7 @@ public class Robot extends TimedRobot {
             fieldRelative = false;
 
             if (targetRange > 2 && targetVisible) {
+
                 SmartDashboard.putBoolean("aligning to tag",true);
                 double xSpeed =
                     -m_xspeedLimiter.calculate(MathUtil.applyDeadband(targetRange * 0.5, 0.03)) // CONFIGURE STUFF SO U CAN TEST IF TS WORKS W/ SWERVE!!!!!
@@ -186,7 +190,7 @@ public class Robot extends TimedRobot {
                 if (targetVisible) {
                     List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
 
-                    if (!(values.get(curPathStep).get(3) == 0)) {
+                    if (!(values.get(curPathStep-1).get(3) == 0)) {
                         if (!pathRunning) {
                             List<Double> curValues = values.get(curPathStep); // also idk
                             totalPathSteps = values.size();
@@ -198,7 +202,7 @@ public class Robot extends TimedRobot {
                             List<Double> curValues = values.get(curPathStep);
                             //
                             SmartDashboard.putBoolean("doing tag path", true);
-                            System.out.println(curValues);
+                            //System.out.println(curValues);
                             pathTimerStop = curValues.get(3);
                             if (pathTimerStop == 0.0) {}
                             else {
@@ -228,7 +232,7 @@ public class Robot extends TimedRobot {
                 }
                 else { // fix logic???
                     List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
-                    List<Double> curValues = values.get(curPathStep);
+                    List<Double> curValues = values.get(curPathStep-1);
                     if (pathTimerStop == 0.0) {}
                     else if (timer.isRunning()) {
                         if (!timer.hasElapsed(pathTimerStop)) {
