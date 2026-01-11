@@ -35,14 +35,14 @@ public class PathUtil {
     }
     //1
     if (aprilTagID == 1) {
-      List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.2,0.2,2.0),Arrays.asList(0.2,0.0,0.2,2.0)); // 2 movements
+      List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.05,0.05,2.0),Arrays.asList(0.05,0.0,0.05,2.0)); // 2 movements
       return values;
     }
     //2
     if (aprilTagID == 2) {
-      List<List<Double>> values = Arrays.asList(Arrays.asList(0.2,0.0,0.2,2.0),Arrays.asList(0.0,0.2,0.2,2.0),Arrays.asList(0.2,0.2,0.0,2.0));
+      List<List<Double>> values = Arrays.asList(Arrays.asList(0.05,0.0,0.05,2.0),Arrays.asList(0.0,0.05,0.05,2.0),Arrays.asList(0.05,0.05,0.0,2.0));
       // - 3 movements ^^^
-      //List<List<Double>> thing = Arrays.asList(Arrays.asList(0.2,0.0,0.2,4.0));
+      //List<List<Double>> thing = Arrays.asList(Arrays.asList(0.05,0.0,0.05,4.0));
       return values;
     }
     else {

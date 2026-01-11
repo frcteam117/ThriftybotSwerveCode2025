@@ -59,7 +59,7 @@ public class Robot extends TimedRobot {
   double targetYaw;
   double targetRange; // from photonvision docs
   double kPVision_Turn;
-  double pathTimerStop;
+  double pathTimerStop = 0.0;
 
   int curPathStep = 1;
   boolean pathRunning = false;
@@ -114,6 +114,7 @@ public class Robot extends TimedRobot {
   }
 
   private void driveWithJoystick(boolean fieldRelative) {
+        //setSwerve(0,0,0, fieldRelative);
         boolean targetVisible = false;
         // Read in relevant data from the Camera
         var results = Arrays.asList(camera0.getAllUnreadResults(),camera2.getAllUnreadResults());
@@ -146,14 +147,17 @@ public class Robot extends TimedRobot {
                     }
                 }
             }
+            else {
+                curAprilTagID = 0;
+                SmartDashboard.putNumber("Target tag ID", 0);
+                SmartDashboard.putNumber("tag vis on camera #",-1);
+            }
         }
 
 
         if (m_controller.getTriangleButton()) {
             SmartDashboard.putBoolean("triangle down", true);
-            setSwerve(1,1,1,fieldRelative);
             SmartDashboard.putNumber("check #",0);
-            SmartDashboard.putBoolean("doing tag path", true);
         }
         else {
             SmartDashboard.putBoolean("triangle down", false);
@@ -162,9 +166,10 @@ public class Robot extends TimedRobot {
         if (!targetVisible) {
             curAprilTagID = 0;
         }
-
+        //SmartDashboard.putNumber("check #",0);
         // Auto-align when requested
         if (m_controller.getTriangleButton()) {
+
             // Driver wants auto-alignment to tag 7
             // And, tag 7 is in sight, so we can turn toward it.
             // Override the driver's turn command with an automatic one that turns toward the tag.
@@ -172,9 +177,9 @@ public class Robot extends TimedRobot {
             //SmartDashboard.putBoolean("targetVisible", true);
             SmartDashboard.putNumber("check #",1);
             fieldRelative = false;
-
+            
             if (targetRange > 2 && targetVisible) {
-
+                SmartDashboard.putNumber("check #",2);
                 SmartDashboard.putBoolean("aligning to tag",true);
                 double xSpeed =
                     -m_xspeedLimiter.calculate(MathUtil.applyDeadband(targetRange * 0.5, 0.03)) // CONFIGURE STUFF SO U CAN TEST IF TS WORKS W/ SWERVE!!!!!
@@ -184,22 +189,25 @@ public class Robot extends TimedRobot {
                     -m_yspeedLimiter.calculate(MathUtil.applyDeadband(targetYaw * kPVision_Turn, 0.03))
                     * SwerveConstants.TOP_SPEED_METERS_PER_SEC
                     * 0.4;
+                    //SmartDashboard.putBoolean("setSwerve",true);
                     setSwerve(xSpeed, ySpeed, 0, fieldRelative); // should rot be rot not 0 here?
             }
             else {
+                SmartDashboard.putNumber("check #",3);
                 if (targetVisible) {
                     List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
+                    SmartDashboard.putNumber("check #",4);
 
                     if (!(values.get(curPathStep-1).get(3) == 0)) {
                         if (!pathRunning) {
-                            List<Double> curValues = values.get(curPathStep); // also idk
+                            List<Double> curValues = values.get(curPathStep-1); // also idk
                             totalPathSteps = values.size();
                             curPathStep = 1;
                             pathRunning = true;
                             pathTimerStop = curValues.get(3); // does this need to be here? im tryna avoid a problem if this immediately goes to the bottom part next loop
                         }
                         else {  //if a path has been started
-                            List<Double> curValues = values.get(curPathStep);
+                            List<Double> curValues = values.get(curPathStep-1);
                             //
                             SmartDashboard.putBoolean("doing tag path", true);
                             //System.out.println(curValues);
@@ -211,6 +219,7 @@ public class Robot extends TimedRobot {
                                     //System.out.println("timer.start()");
                                 }
                                 if (!timer.hasElapsed(pathTimerStop)) {
+                                    //SmartDashboard.putBoolean("setSwerve",true);
                                     setSwerve(curValues.get(0), curValues.get(1), curValues.get(2), fieldRelative);
                                     //System.out.println("doing path at "+timer.get());
                                 }
@@ -231,11 +240,14 @@ public class Robot extends TimedRobot {
                     }
                 }
                 else { // fix logic???
-                    List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
-                    List<Double> curValues = values.get(curPathStep-1);
+                    SmartDashboard.putNumber("check #",5);
                     if (pathTimerStop == 0.0) {}
                     else if (timer.isRunning()) {
+                        List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
+                        List<Double> curValues = values.get(curPathStep-1);
+                        SmartDashboard.putNumber("check #",6);
                         if (!timer.hasElapsed(pathTimerStop)) {
+                            //SmartDashboard.putBoolean("setSwerve",true);
                             setSwerve(curValues.get(0), curValues.get(1), curValues.get(2), fieldRelative);
                             //System.out.println("doing path at "+timer.get());
                         }
@@ -256,7 +268,9 @@ public class Robot extends TimedRobot {
             }
         }
         else {
+            //SmartDashboard.putBoolean("setSwerve",false);
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
+            SmartDashboard.putBoolean("doing tag path", false);
         }
   }
   private void manualControl() {
