@@ -35,6 +35,8 @@ import frc.robot.generated.SwerveConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 //
+import edu.wpi.first.wpilibj.Timer;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.Period;
@@ -54,6 +56,8 @@ public class PathCommands {
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   //
+
+  Timer timer;
     //Drivetrain m_swerve; // does this just work????????
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
@@ -63,6 +67,7 @@ public class PathCommands {
 
     public static Command StopSwerve(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
         //Drivetrain m_swerve,
+
         return Commands.sequence(
             Commands.runOnce (
                 () -> {
@@ -73,12 +78,24 @@ public class PathCommands {
 
     }
 
-    public static Command ExamplePath(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
+    public static Command ForwardPathCommand(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
         //Drivetrain m_swerve,
         return Commands.sequence(
             Commands.runOnce (
                 () -> {
-                    drivetrain.drive(0.5, 0.5, 0.5, fieldRelative, m_period); // add way to stop the robot?????
+                    drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); // add way to stop the robot?????
+                }
+            )
+        );
+
+    }
+
+    public static Command BackwardPathCommand(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
+        //Drivetrain m_swerve,
+        return Commands.sequence(
+            Commands.runOnce (
+                () -> {
+                    drivetrain.drive(-0.1, -0.1, 0.0, fieldRelative, m_period); // add way to stop the robot?????
                 }
             )
         );

@@ -17,43 +17,47 @@ package frc.robot.util;
 //import frc.robot.subsystems.drive.Drive;
 import java.util.Arrays;
 import java.util.List;
-
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 //import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import frc.robot.commands.*;
+import frc.robot.Drivetrain;
 
 public class PathUtil {
-  /*
+  public record Data(List<Command> Commands,List<Double> pathTimerStops) {};
   private static final double DEADBAND = 0.1;
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
-  */
   private PathUtil() {} // ADD WAY TO HAVE MULTIPLE PATHS FOR ONE APRILTAG???? MORE ARRAYS IDK
   
-  public static List<List<Double>> getValuesFromTagID(int aprilTagID) {
+  public static Data getPathFromTagID(int aprilTagID, Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
     // commands for each tag:
     if (aprilTagID == 0) {
-      List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0)); // 2 movements
-      return values;
+      List<Command> Commands = Arrays.asList();
+      List<Double> pathTimerStops = Arrays.asList(0.0);
+      Data data = new Data(Commands, pathTimerStops);
+      return data;
     }
-    //1
-    if (aprilTagID == 1) {
-      List<List<Double>> values = Arrays.asList(Arrays.asList(-0.1,-0.1,-0.1,2.0),Arrays.asList(0.1,0.1,0.1,1.0)); // 2 movements
-      return values;
+    else if (aprilTagID == 1) {
+      List<Command> Commands = Arrays.asList(
+      PathCommands.ForwardPathCommand(drivetrain, fieldRelative, m_period));
+      List<Double> pathTimerStops = Arrays.asList(1.0);
+      Data data = new Data(Commands, pathTimerStops);
+      return data;
     }
-    //2
-    if (aprilTagID == 2) {
-      List<List<Double>> values = Arrays.asList(Arrays.asList(0.1,0.1,0.1,1.0),Arrays.asList(-0.1,-0.1,-0.1,1.0),Arrays.asList(0.1,0.1,0.1,1.0));
-      // - 3 movements ^^^
-      //List<List<Double>> thing = Arrays.asList(Arrays.asList(-0.1,0.0,-0.1,4.0));
-      return values;
-    }
-    if (aprilTagID == 3) {
-      List<List<Double>> values = Arrays.asList(Arrays.asList(0.1,0.1,0.1,1.0));
-      // - 3 movements ^^^
-      //List<List<Double>> thing = Arrays.asList(Arrays.asList(-0.1,0.0,-0.1,4.0));
-      return values;
+    else if (aprilTagID == 2) {
+      List<Command> Commands = Arrays.asList(
+        PathCommands.ForwardPathCommand(drivetrain, fieldRelative, m_period), 
+        PathCommands.BackwardPathCommand(drivetrain, fieldRelative, m_period));
+      List<Double> pathTimerStops = Arrays.asList(1.0,1.0);
+      Data data = new Data(Commands, pathTimerStops);
+      return data;
     }
     else {
-      List<List<Double>> values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0)); // one list but 0 movements
-      return values;
+      List<Command> Commands = Arrays.asList();
+      List<Double> pathTimerStops = Arrays.asList(0.0);
+      Data data = new Data(Commands, pathTimerStops);
+      return data;
     }
     // other tags vvv
   }

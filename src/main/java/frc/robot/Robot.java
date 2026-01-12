@@ -26,6 +26,8 @@ import edu.wpi.first.math.util.Units;
 import java.util.Arrays;
 import java.util.List;
 
+import frc.robot.commands.*;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
@@ -65,8 +67,12 @@ public class Robot extends TimedRobot {
   boolean pathRunning = false;
   int totalPathSteps = 0;
 
+  List<Command> curCommands;
+
   public Robot () {
     timer = new Timer();
+    timer.reset();
+    timer.stop();
     kPVision_Turn = -.03;
     targetYaw = (0.0);
     camera0 = new PhotonCamera("PC_Camera0");
@@ -192,103 +198,84 @@ public class Robot extends TimedRobot {
                     //SmartDashboard.putBoolean("setSwerve",true);
                     setSwerve(xSpeed, ySpeed, 0, fieldRelative); // should rot be rot not 0 here?
             }
-            else {
+            else { // if not aligning to target
                 SmartDashboard.putNumber("check #",3);
                 if (targetVisible) {
-                    List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
-                    SmartDashboard.putNumber("check #",4);
-
-                    if (!(values.get(curPathStep-1).get(3) == 0)) {
-                        if (!pathRunning) {
-                            List<Double> curValues = values.get(curPathStep-1); // also idk
-                            totalPathSteps = values.size();
-                            //curPathStep = 1;
-                            pathRunning = true;
-                            pathTimerStop = curValues.get(3); // does this need to be here? im tryna avoid a problem if this immediately goes to the bottom part next loop
-                        }
-                        else {  //if a path has been started
-                            List<Double> curValues = values.get(curPathStep-1);
-                            //
-                            SmartDashboard.putBoolean("doing tag path", true);
-                            //System.out.println(curValues);
-                            pathTimerStop = curValues.get(3);
-                            if (pathTimerStop == 0.0) {}
-                            else {
-                                if (!timer.isRunning()) { // check if timer has already been started
-                                    timer.start();
-                                    //System.out.println("timer.start()");
-                                }
-                                if (!timer.hasElapsed(pathTimerStop)) {
-                                    //SmartDashboard.putBoolean("setSwerve",true);
-                                    setSwerve(curValues.get(0), curValues.get(1), curValues.get(2), fieldRelative);
-                                    //System.out.println("doing path at "+timer.get());
-                                }
-                                else if (timer.isRunning()) {
-                                    //System.out.println("timer.stop() at "+timer.get());
-                                    if (curPathStep == totalPathSteps) {
-                                        timer.stop();
-                                        timer.reset();
-                                        curPathStep = 1;
-                                        pathRunning = false;
-                                        totalPathSteps = 0;
-                                        pathTimerStop = 0.0;
-                                        values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0));
-                                        curValues = Arrays.asList(0.0,0.0,0.0,0.0);
-                                    }
-                                    else {
-                                        curPathStep += 1;
-                                    }
-                                }
-                            }
-                        }
+                    if (!pathRunning) { // start path
+                        curPathStep = 1;
+                        pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
+                        curCommands = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).Commands();
+                        totalPathSteps = curCommands.size();
+                        timer.stop();
+                        timer.reset();
+                        timer.start();
+                        pathRunning = true;
+                        //
+                        curCommands.get(curPathStep-1).schedule();
                     }
-                }
-                else { // fix logic???
-                    SmartDashboard.putNumber("check #",5);
-                    if (pathTimerStop == 0.0) {}
-                    else if (timer.isRunning()) {
-                        List<List<Double>> values = PathUtil.getValuesFromTagID(curAprilTagID);
-                        List<Double> curValues = values.get(curPathStep-1);
-                        SmartDashboard.putNumber("check #",6);
-                        if (!timer.hasElapsed(pathTimerStop)) {
-                            //SmartDashboard.putBoolean("setSwerve",true);
-                            setSwerve(curValues.get(0), curValues.get(1), curValues.get(2), fieldRelative);
-                            //System.out.println("doing path at "+timer.get());
-                        }
-                        else {
-                            pathTimerStop = 0.0;
+                    else { // continue path
+                        if (timer.hasElapsed(pathTimerStop)) { // if step is over
+                            pathTimerStop = 0;
                             timer.stop();
                             timer.reset();
-                            //System.out.println("timer.stop() at "+timer.get());
-                            if (curPathStep == totalPathSteps) {
+                            if (curPathStep == totalPathSteps) { // if whole path is done
                                 curPathStep = 1;
-                                pathTimerStop = 0.0;
                                 totalPathSteps = 0;
+                                pathTimerStop = 0;
+                                timer.stop();
+                                timer.reset();
+                                PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
                                 pathRunning = false;
-                                values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0));
-                                curValues = Arrays.asList(0.0,0.0,0.0,0.0);
                             }
-                            else {
+                            else { // go to next path step
                                 curPathStep += 1;
+                                pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
+                                timer.reset();
+                                PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
+                                curCommands.get(curPathStep-1).schedule();
                             }
+                        }
+
+                    }
+                }
+                else if (pathRunning) { // continue path while target not visible
+                    if (timer.hasElapsed(pathTimerStop)) {
+                        pathTimerStop = 0;
+                        timer.stop();
+                        timer.reset();
+                        if (curPathStep == totalPathSteps) {
+                            curPathStep = 1;
+                            totalPathSteps = 0;
+                            pathTimerStop = 0;
+                            timer.stop();
+                            timer.reset();
+                            PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
+                            pathRunning = false;
+                        }
+                        else {
+                            curPathStep += 1;
+                            pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
+                            timer.reset(); // hopefully this doesn't stop it????
+                            PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
+                            curCommands.get(curPathStep-1).schedule();
                         }
                     }
                 }
             }
-            SmartDashboard.putNumber("pathTimerStop",pathTimerStop);
         }
         else {
-            //SmartDashboard.putBoolean("setSwerve",false);
-            curPathStep = 1;
-            pathRunning = false;
-            pathTimerStop = 0.0;
-            setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
-            SmartDashboard.putBoolean("doing tag path", false);
-            timer.stop();
-            timer.reset();
-            SmartDashboard.putNumber("pathTimerStop",pathTimerStop);
+            if (!pathRunning) {
+                curPathStep = 1;
+                pathTimerStop = 0;
+                totalPathSteps = 0;
+                timer.stop();
+                timer.reset();
+                // maybe consolodate all of that ^^^ into a method :3
+                setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
 
+            }
         }
+                    
   }
   private void manualControl() {
    //m_swerve.manualDrive(m_controller.getLeftY(), m_controller.getRightX());
