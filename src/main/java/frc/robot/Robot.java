@@ -5,7 +5,7 @@
 /*Could not find **any** PhotonVision coprocessors on NetworkTables. Double check that PhotonVision is running, and that your camera is connected!
 Error at org.photonvision.PhotonCamera.verifyVersion(PhotonCamera.java:490): Could not find **any** PhotonVision coprocessors on NetworkTables. Double check that PhotonVision is running, and that your camera is connected!
 PhotonVision coprocessor at path /photonvision/PC_Camera has not reported a message interface UUID - is your coprocessor's camera started? */
-package frc.robot;
+package frc.robot; // TEST WHEN U GET HOME BESTIEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
@@ -40,20 +40,20 @@ public class Robot extends TimedRobot {
   // private final XboxController m_controller = new XboxController(0);
   private final PS5Controller m_controller = new PS5Controller(0);
   AHRS gyro = new AHRS(NavXComType.kUSB1);
-
+    
   private final Drivetrain m_swerve = new Drivetrain(() -> Rotation2d.fromDegrees(gyro.getYaw()), new Pose2d());  // private final SimDrivetrain m_simSwerve = new SimDrivetrain(new Pose2d());
 
   // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
   private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
   private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
   private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9);
-    // code problems: only when both cameras are used 2gether
+    // 
   PhotonCamera camera0; // needs callibrated
   PhotonCamera camera2;
   Timer timer;
   //Timer timer = new Timer();
 
-  List<Integer> aprilTagIDs = Arrays.asList(1, 2);
+  List<Integer> aprilTagIDs = Arrays.asList(1, 2, 3); // do we need this?????? maybe get rid of it <---------------------
   int curAprilTagID = 0;
 
   double targetYaw;
@@ -178,7 +178,7 @@ public class Robot extends TimedRobot {
             SmartDashboard.putNumber("check #",1);
             fieldRelative = false;
             
-            if (targetRange > 2 && targetVisible) {
+            if (targetRange > 2 && targetVisible) { // reset the camera photonvision values so the targetrange stuff can be accurate?
                 SmartDashboard.putNumber("check #",2);
                 SmartDashboard.putBoolean("aligning to tag",true);
                 double xSpeed =
@@ -202,7 +202,7 @@ public class Robot extends TimedRobot {
                         if (!pathRunning) {
                             List<Double> curValues = values.get(curPathStep-1); // also idk
                             totalPathSteps = values.size();
-                            curPathStep = 1;
+                            //curPathStep = 1;
                             pathRunning = true;
                             pathTimerStop = curValues.get(3); // does this need to be here? im tryna avoid a problem if this immediately goes to the bottom part next loop
                         }
@@ -224,12 +224,16 @@ public class Robot extends TimedRobot {
                                     //System.out.println("doing path at "+timer.get());
                                 }
                                 else if (timer.isRunning()) {
-                                    pathTimerStop = 0.0;
-                                    timer.stop();
                                     //System.out.println("timer.stop() at "+timer.get());
                                     if (curPathStep == totalPathSteps) {
+                                        timer.stop();
+                                        timer.reset();
                                         curPathStep = 1;
                                         pathRunning = false;
+                                        totalPathSteps = 0;
+                                        pathTimerStop = 0.0;
+                                        values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0));
+                                        curValues = Arrays.asList(0.0,0.0,0.0,0.0);
                                     }
                                     else {
                                         curPathStep += 1;
@@ -254,10 +258,15 @@ public class Robot extends TimedRobot {
                         else {
                             pathTimerStop = 0.0;
                             timer.stop();
+                            timer.reset();
                             //System.out.println("timer.stop() at "+timer.get());
                             if (curPathStep == totalPathSteps) {
                                 curPathStep = 1;
+                                pathTimerStop = 0.0;
+                                totalPathSteps = 0;
                                 pathRunning = false;
+                                values = Arrays.asList(Arrays.asList(0.0,0.0,0.0,0.0));
+                                curValues = Arrays.asList(0.0,0.0,0.0,0.0);
                             }
                             else {
                                 curPathStep += 1;
@@ -266,11 +275,19 @@ public class Robot extends TimedRobot {
                     }
                 }
             }
+            SmartDashboard.putNumber("pathTimerStop",pathTimerStop);
         }
         else {
             //SmartDashboard.putBoolean("setSwerve",false);
+            curPathStep = 1;
+            pathRunning = false;
+            pathTimerStop = 0.0;
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
             SmartDashboard.putBoolean("doing tag path", false);
+            timer.stop();
+            timer.reset();
+            SmartDashboard.putNumber("pathTimerStop",pathTimerStop);
+
         }
   }
   private void manualControl() {
