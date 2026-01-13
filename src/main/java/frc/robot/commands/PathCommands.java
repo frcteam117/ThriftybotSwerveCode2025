@@ -60,6 +60,7 @@ public class PathCommands {
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   //
   public static boolean condition = false; // this whole system is dogshit but this is prolly the worst part. its funny tho
+  public static double limiter = 0.1;
   //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
   public static boolean end = false;
 
@@ -78,11 +79,38 @@ public class PathCommands {
         else { return false;}
     }
 
-    private static List<Double> CalcDriveValues(Pose2d curPose, Pose2d targetPose) {
+    private static List<Double> CalcSwerveValues(Pose2d curPose, Pose2d targetPose) {
+        double difX = Math.abs(curPose.getX()-targetPose.getX());
+        double difY = Math.abs(curPose.getY()-targetPose.getY());
+        //
         double xSpeed = 0;
         double ySpeed = 0;
-        double rot = 0;
-        // INSERT MATH
+        double rot = 0; // add this later idk man
+        //Rotation2d difRot = Pose2d.getRotation();
+        if (!(difX == 0) && !(difY == 0)) {
+             xSpeed = (difX / difY) * limiter;
+             ySpeed = (difY / difX) * limiter;
+        }
+        else {
+            if ((difX == 0) && (difY == 0))  {
+             xSpeed = 0 * limiter;
+                 ySpeed = 0 * limiter;
+            }
+            if (difX == 0) {
+                 xSpeed = 1 * limiter;
+                 ySpeed = 0 * limiter;
+            };
+            if (difY == 0) { 
+                 xSpeed = 0 * limiter;
+                 ySpeed = 1 * limiter;
+            };
+        }
+
+        if (difX > 1) {difX = 1;};
+        if (difY > 1) {difY = 1;};
+
+
+        // is this math right?????
         List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
         return values;
 
@@ -123,9 +151,10 @@ public class PathCommands {
                 () -> {
                     condition = false;
                     Pose2d targetPose = new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0));
+                    List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
                     if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                        drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+                        drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                     }
                     else {
                         Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
@@ -138,9 +167,9 @@ public class PathCommands {
                     if (condition) {
                         condition = false;
                         Pose2d targetPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(0));
-
+                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
                         if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                            drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                         }
                         else {
                             Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
@@ -172,9 +201,10 @@ public class PathCommands {
                 () -> {
                     condition = false;
                     Pose2d targetPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(0));
-
+                    List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
                     if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                        drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+
+                        drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                     }
                     else {
                         Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
@@ -187,9 +217,9 @@ public class PathCommands {
                     if (condition) {
                         condition = false;
                         Pose2d targetPose = new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0));
-
+                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
                         if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                            drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                         }
                         else {
                             Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK

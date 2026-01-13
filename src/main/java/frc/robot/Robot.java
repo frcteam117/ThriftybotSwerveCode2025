@@ -201,7 +201,7 @@ public class Robot extends TimedRobot {
         // Auto-align when requested
         if (m_controller.getTriangleButton()) {
             SmartDashboard.putNumber("check #",1);
-            fieldRelative = false;
+            fieldRelative = true;
             
             if (targetRange > 2 && targetVisible) { // reset the camera photonvision values so the targetrange stuff can be accurate?
                 SmartDashboard.putNumber("check #",2);
