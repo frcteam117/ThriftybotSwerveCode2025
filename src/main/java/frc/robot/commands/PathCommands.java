@@ -59,7 +59,9 @@ public class PathCommands {
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   //
-  //public static boolean condition = false;
+  public static boolean condition = false; // this whole system is dogshit but this is prolly the worst part. its funny tho
+  //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
+  public static boolean end = false;
 
   Timer timer;
     //Drivetrain m_swerve; // does this just work????????
@@ -113,21 +115,13 @@ public class PathCommands {
 
     public static Command Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         //Drivetrain m_swerve,
+        //Drivetrain m_swerve,
+        condition = false;
+        end = false;
         return Commands.sequence(
             Commands.run(
                 () -> {
-                    Pose2d targetPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(0));
-
-                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                        drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
-                    }
-                    else {
-                        Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
-                    }
-                }
-            ),
-            Commands.run(
-                () -> {
+                    condition = false;
                     Pose2d targetPose = new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0));
 
                     if (!CloseEnough(drivetrain.getPose(), targetPose)) {
@@ -135,12 +129,34 @@ public class PathCommands {
                     }
                     else {
                         Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
+                        condition = true;
                     }
                 }
             ),
-            Commands.runOnce(
+            Commands.run(
                 () -> {
-                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                    if (condition) {
+                        condition = false;
+                        Pose2d targetPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(0));
+
+                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                            drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+                        }
+                        else {
+                            Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
+                            end = true;
+
+                        }
+                    }
+                }
+            ),
+            Commands.run(
+                () -> {
+                    if (end) {
+                        robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                        condition = false;
+                        end = false;
+                    }
                 }
             )
         );
@@ -149,34 +165,47 @@ public class PathCommands {
 
     public static Command Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         //Drivetrain m_swerve,
+        condition = false;
+        end = false;
         return Commands.sequence(
             Commands.run(
                 () -> {
-                    Pose2d targetPose = new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0));
-
-                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                        drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
-                    }
-                    else {
-                        Path2Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
-                    }
-                }
-            ),
-            Commands.run(
-                () -> {
+                    condition = false;
                     Pose2d targetPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(0));
 
                     if (!CloseEnough(drivetrain.getPose(), targetPose)) {
                         drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
                     }
                     else {
-                        Path2Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
+                        Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
+                        condition = true;
                     }
                 }
             ),
-            Commands.runOnce(
+            Commands.run(
                 () -> {
-                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                    if (condition) {
+                        condition = false;
+                        Pose2d targetPose = new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0));
+
+                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                            drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+                        }
+                        else {
+                            Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
+                            end = true;
+
+                        }
+                    }
+                }
+            ),
+            Commands.run(
+                () -> {
+                    if (end) {
+                        robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                        condition = false;
+                        end = false;
+                    }
                 }
             )
         );
