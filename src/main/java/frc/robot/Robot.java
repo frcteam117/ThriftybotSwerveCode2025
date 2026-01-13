@@ -103,6 +103,17 @@ public class Robot extends TimedRobot {
     }
   }
 
+
+  private void resetPathVars () {
+    curPathStep = 1;
+    totalPathSteps = 0;
+    pathTimerStop = 0;
+    curCommands = Arrays.asList();
+    timer.stop();
+    timer.reset();
+    pathRunning = false;
+  }
+
   private void setSwerve(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
 
     double a =
@@ -220,14 +231,8 @@ public class Robot extends TimedRobot {
                             //timer.stop();
                             //timer.reset();
                             if (curPathStep == totalPathSteps) { // if whole path is done
-                                curPathStep = 1;
-                                totalPathSteps = 0;
-                                pathTimerStop = 0;
-                                curCommands = Arrays.asList();
-                                timer.stop();
-                                timer.reset();
+                                resetPathVars();
                                 PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
-                                pathRunning = false;
                             }
                             else { // go to next path step
                                 curPathStep += 1;
@@ -246,14 +251,8 @@ public class Robot extends TimedRobot {
                         //timer.stop();
                         //timer.reset();
                         if (curPathStep == totalPathSteps) { // if whole path is done
-                            curPathStep = 1;
-                            totalPathSteps = 0;
-                            pathTimerStop = 0;
-                            curCommands = Arrays.asList();
-                            timer.stop();
-                            timer.reset();
+                            resetPathVars();
                             PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
-                            pathRunning = false;
                         }
                         else { // go to next step
                             curPathStep += 1;
@@ -269,12 +268,7 @@ public class Robot extends TimedRobot {
         }
         else {
             if (!pathRunning) {
-                curPathStep = 1;
-                pathTimerStop = 0;
-                curCommands = Arrays.asList();
-                totalPathSteps = 0;
-                timer.stop();
-                timer.reset();
+                resetPathVars();
                 // maybe consolodate all of that ^^^ into a method :3
                 setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
 
