@@ -56,7 +56,7 @@ public class Robot extends TimedRobot {
   //Timer timer = new Timer();
 
   List<Integer> aprilTagIDs = Arrays.asList(1, 2, 3); // do we need this?????? maybe get rid of it <---------------------
-  int curAprilTagID = 0;
+  public static int curAprilTagID = 0;
 
   double targetYaw;
   double targetRange; // from photonvision docs
@@ -78,6 +78,7 @@ public class Robot extends TimedRobot {
   Command curPathCommand;
   
   public Robot () {
+    SmartDashboard.putBoolean("running Path1Command",true);
     timer = new Timer();
     timer.reset();
     timer.stop();
@@ -85,6 +86,10 @@ public class Robot extends TimedRobot {
     targetYaw = (0.0);
     camera0 = new PhotonCamera("PC_Camera0");
     camera2 = new PhotonCamera("PC_Camera2");
+    Rotation2d originRot = new Rotation2d(0);
+    Pose2d origin = new Pose2d(0,0,originRot);
+    m_swerve.resetOdometry(origin);
+
   }
   @Override
   public void robotPeriodic() {
@@ -122,7 +127,7 @@ public class Robot extends TimedRobot {
     curPathStep = 1;
     totalPathSteps = 0;
     pathTimerStop = 0;
-    curPathCommand = PathCommands.BlankCommand();
+    //curPathCommand = PathCommands.BlankCommand();
     timer.stop();
     timer.reset();
     pathRunning = false;
@@ -179,7 +184,7 @@ public class Robot extends TimedRobot {
                 }
             }
             else {
-                curAprilTagID = 0;
+                //curAprilTagID = 0;
                 SmartDashboard.putNumber("Target tag ID", 0);
                 SmartDashboard.putNumber("tag vis on camera #",-1);
             }
@@ -221,13 +226,21 @@ public class Robot extends TimedRobot {
                 //pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
                 SmartDashboard.putNumber("check #",3);
                 if (targetVisible) {
+                    SmartDashboard.putNumber("check #",4);
                     if (!pathRunning) { // start path
+                        SmartDashboard.putNumber("check #",5);
                         curPathStep = 1;
-                        curPathCommand = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this);
-                        curPathCommand.schedule();
+                        PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this);
+                        //Command a = () -> curPathCommand.schedule();
+                        //curPathCommand = {() -> PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this)};
+
                     }
                 }
             }
+        }
+        else {
+            fieldRelative = false;
+            setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
         }
                     
   }
