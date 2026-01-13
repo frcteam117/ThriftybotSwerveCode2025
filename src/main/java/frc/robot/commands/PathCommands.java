@@ -83,6 +83,9 @@ public class PathCommands {
         double difX = Math.abs(curPose.getX()-targetPose.getX());
         double difY = Math.abs(curPose.getY()-targetPose.getY());
         //
+        if (difX > 1) {difX = 1;};
+        if (difY > 1) {difY = 1;};
+        //
         double xSpeed = 0;
         double ySpeed = 0;
         double rot = 0; // add this later idk man
@@ -105,11 +108,6 @@ public class PathCommands {
                  ySpeed = 1 * limiter;
             };
         }
-
-        if (difX > 1) {difX = 1;};
-        if (difY > 1) {difY = 1;};
-
-
         // is this math right?????
         List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
         return values;
