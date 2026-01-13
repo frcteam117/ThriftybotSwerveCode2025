@@ -67,7 +67,7 @@ public class Robot extends TimedRobot {
   boolean pathRunning = false;
   int totalPathSteps = 0;
 
-  List<Command> curCommands;
+  List<Command> curCommands = Arrays.asList();
 
   public Robot () {
     timer = new Timer();
@@ -199,6 +199,7 @@ public class Robot extends TimedRobot {
                     setSwerve(xSpeed, ySpeed, 0, fieldRelative); // should rot be rot not 0 here?
             }
             else { // if not aligning to target
+                //pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
                 SmartDashboard.putNumber("check #",3);
                 if (targetVisible) {
                     if (!pathRunning) { // start path
@@ -216,12 +217,13 @@ public class Robot extends TimedRobot {
                     else { // continue path
                         if (timer.hasElapsed(pathTimerStop)) { // if step is over
                             pathTimerStop = 0;
-                            timer.stop();
-                            timer.reset();
+                            //timer.stop();
+                            //timer.reset();
                             if (curPathStep == totalPathSteps) { // if whole path is done
                                 curPathStep = 1;
                                 totalPathSteps = 0;
                                 pathTimerStop = 0;
+                                curCommands = Arrays.asList();
                                 timer.stop();
                                 timer.reset();
                                 PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
@@ -241,18 +243,19 @@ public class Robot extends TimedRobot {
                 else if (pathRunning) { // continue path while target not visible
                     if (timer.hasElapsed(pathTimerStop)) {
                         pathTimerStop = 0;
-                        timer.stop();
-                        timer.reset();
-                        if (curPathStep == totalPathSteps) {
+                        //timer.stop();
+                        //timer.reset();
+                        if (curPathStep == totalPathSteps) { // if whole path is done
                             curPathStep = 1;
                             totalPathSteps = 0;
                             pathTimerStop = 0;
+                            curCommands = Arrays.asList();
                             timer.stop();
                             timer.reset();
                             PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
                             pathRunning = false;
                         }
-                        else {
+                        else { // go to next step
                             curPathStep += 1;
                             pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
                             timer.reset(); // hopefully this doesn't stop it????
@@ -262,11 +265,13 @@ public class Robot extends TimedRobot {
                     }
                 }
             }
+            SmartDashboard.putNumber("timer is @",timer.get());
         }
         else {
             if (!pathRunning) {
                 curPathStep = 1;
                 pathTimerStop = 0;
+                curCommands = Arrays.asList();
                 totalPathSteps = 0;
                 timer.stop();
                 timer.reset();

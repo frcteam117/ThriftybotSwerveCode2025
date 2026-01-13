@@ -65,6 +65,13 @@ public class PathCommands {
     //
     private PathCommands() {} // ADD A TIME FUNCTION???????
 
+    public static Command BlankCommand() {
+        return Commands.sequence(
+            Commands.runOnce (
+                () -> {}
+            )
+        );
+    }
     public static Command StopSwerve(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
         //Drivetrain m_swerve,
 
