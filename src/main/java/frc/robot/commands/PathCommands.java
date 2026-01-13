@@ -28,6 +28,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 //
 import frc.robot.Drivetrain;
 import frc.robot.Robot;
@@ -56,6 +57,7 @@ public class PathCommands {
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   //
+  private boolean condition = false;
 
   Timer timer;
     //Drivetrain m_swerve; // does this just work????????
@@ -85,24 +87,46 @@ public class PathCommands {
 
     }
 
-    public static Command ForwardPathCommand(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
+    // path commands vvv
+
+    public static Command Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         //Drivetrain m_swerve,
         return Commands.sequence(
             Commands.runOnce (
                 () -> {
-                    drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); // add way to stop the robot?????
+                    drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+                }
+            ),
+            Commands.runOnce (
+                () -> {
+                    drivetrain.drive(-0.1, -0.1, 0.0, fieldRelative, m_period);
+                }
+            ),
+            Commands.runOnce (
+                () -> {
+                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
                 }
             )
         );
 
     }
 
-    public static Command BackwardPathCommand(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
+    public Command Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         //Drivetrain m_swerve,
         return Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                    drivetrain.drive(-0.1, -0.1, 0.0, fieldRelative, m_period);
+                }
+            ),
             Commands.runOnce (
                 () -> {
-                    drivetrain.drive(-0.1, -0.1, 0.0, fieldRelative, m_period); // add way to stop the robot?????
+                    drivetrain.drive(0.1, 0.1, 0.0, fieldRelative, m_period); 
+                }
+            ),
+            Commands.runOnce(
+                () -> {
+                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
                 }
             )
         );

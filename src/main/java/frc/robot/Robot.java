@@ -25,7 +25,7 @@ import edu.wpi.first.math.util.Units;
 
 import java.util.Arrays;
 import java.util.List;
-
+import frc.robot.subsystems.*;
 import frc.robot.commands.*;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -61,14 +61,22 @@ public class Robot extends TimedRobot {
   double targetYaw;
   double targetRange; // from photonvision docs
   double kPVision_Turn;
+  
+  Pose2d curPose;
+  double curX;
+  double curY;
+  //Rotation2d curRot;
+
   double pathTimerStop = 0.0;
 
   int curPathStep = 1;
-  boolean pathRunning = false;
+
+  public static boolean pathRunning = false;
+
   int totalPathSteps = 0;
 
-  List<Command> curCommands = Arrays.asList();
-
+  Command curPathCommand;
+  
   public Robot () {
     timer = new Timer();
     timer.reset();
@@ -82,6 +90,7 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
       // This runs in all robot modes (disabled, auto, teleop, test)
       m_swerve.periodic();
+
   } 
 
   @Override
@@ -92,6 +101,11 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
+    curPose = m_swerve.getPose();
+    curX = curPose.getX();
+    curY = curPose.getY();
+    //curRot = curPose.getRotation();
+
     if (m_controller.getSquareButtonPressed()) {
         m_swerve.resetFieldRelativeDirection();
     }
@@ -104,11 +118,11 @@ public class Robot extends TimedRobot {
   }
 
 
-  private void resetPathVars () {
+  private void resetPathVars() {
     curPathStep = 1;
     totalPathSteps = 0;
     pathTimerStop = 0;
-    curCommands = Arrays.asList();
+    curPathCommand = PathCommands.BlankCommand();
     timer.stop();
     timer.reset();
     pathRunning = false;
@@ -183,15 +197,9 @@ public class Robot extends TimedRobot {
         if (!targetVisible) {
             curAprilTagID = 0;
         }
-        //SmartDashboard.putNumber("check #",0);
+
         // Auto-align when requested
         if (m_controller.getTriangleButton()) {
-
-            // Driver wants auto-alignment to tag 7
-            // And, tag 7 is in sight, so we can turn toward it.
-            // Override the driver's turn command with an automatic one that turns toward the tag.
-            //rotation = pid.calculate(targetYaw, 0);
-            //SmartDashboard.putBoolean("targetVisible", true);
             SmartDashboard.putNumber("check #",1);
             fieldRelative = false;
             
@@ -215,63 +223,10 @@ public class Robot extends TimedRobot {
                 if (targetVisible) {
                     if (!pathRunning) { // start path
                         curPathStep = 1;
-                        pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
-                        curCommands = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).Commands();
-                        totalPathSteps = curCommands.size();
-                        timer.stop();
-                        timer.reset();
-                        timer.start();
-                        pathRunning = true;
-                        //
-                        curCommands.get(curPathStep-1).schedule();
-                    }
-                    else { // continue path
-                        if (timer.hasElapsed(pathTimerStop)) { // if step is over
-                            pathTimerStop = 0;
-                            //timer.stop();
-                            //timer.reset();
-                            if (curPathStep == totalPathSteps) { // if whole path is done
-                                resetPathVars();
-                                PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
-                            }
-                            else { // go to next path step
-                                curPathStep += 1;
-                                pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
-                                timer.reset();
-                                PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
-                                curCommands.get(curPathStep-1).schedule();
-                            }
-                        }
-
+                        curPathCommand = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this);
+                        curPathCommand.schedule();
                     }
                 }
-                else if (pathRunning) { // continue path while target not visible
-                    if (timer.hasElapsed(pathTimerStop)) {
-                        pathTimerStop = 0;
-                        //timer.stop();
-                        //timer.reset();
-                        if (curPathStep == totalPathSteps) { // if whole path is done
-                            resetPathVars();
-                            PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
-                        }
-                        else { // go to next step
-                            curPathStep += 1;
-                            pathTimerStop = PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod()).pathTimerStops().get(curPathStep-1);
-                            timer.reset(); // hopefully this doesn't stop it????
-                            PathCommands.StopSwerve(m_swerve, fieldRelative, getPeriod()).schedule();
-                            curCommands.get(curPathStep-1).schedule();
-                        }
-                    }
-                }
-            }
-            SmartDashboard.putNumber("timer is @",timer.get());
-        }
-        else {
-            if (!pathRunning) {
-                resetPathVars();
-                // maybe consolodate all of that ^^^ into a method :3
-                setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
-
             }
         }
                     
@@ -280,3 +235,13 @@ public class Robot extends TimedRobot {
    //m_swerve.manualDrive(m_controller.getLeftY(), m_controller.getRightX());
   }
 }
+/*
+if (targetVisible) {
+
+}
+
+
+
+
+
+*/

@@ -22,42 +22,40 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 //import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.commands.*;
+import frc.robot.Robot;
 import frc.robot.Drivetrain;
 
 public class PathUtil {
-  public record Data(List<Command> Commands,List<Double> pathTimerStops) {};
+  //public record Data(Command Commands,List<Double> targetPose) {};
   private static final double DEADBAND = 0.1;
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private PathUtil() {} // ADD WAY TO HAVE MULTIPLE PATHS FOR ONE APRILTAG???? MORE ARRAYS IDK
   
-  public static Data getPathFromTagID(int aprilTagID, Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
-    // commands for each tag:
+  public static Command getPathFromTagID(int aprilTagID, Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
+    // commands for each tag: // use fieldRelative to determine if it should be fieldRelative or just offSet!!!!!!!!!
     if (aprilTagID == 0) {
-      List<Command> Commands = Arrays.asList();
-      List<Double> pathTimerStops = Arrays.asList(0.0);
-      Data data = new Data(Commands, pathTimerStops);
-      return data;
+      Command Commands = PathCommands.BlankCommand();
+      //List<Double> targetPose = ;
+      //Data data = new Data(Commands, targetPose);
+      return Commands;
     }
     else if (aprilTagID == 1) {
-      List<Command> Commands = Arrays.asList(
-      PathCommands.ForwardPathCommand(drivetrain, fieldRelative, m_period));
-      List<Double> pathTimerStops = Arrays.asList(1.0);
-      Data data = new Data(Commands, pathTimerStops);
-      return data;
+      Command Commands = PathCommands.Path1Command(drivetrain, fieldRelative, m_period, robot);
+      //List<Double> targetPose = 1.0);
+      //Data data = new Data(Commands, targetPose);
+      return Commands;
     }
     else if (aprilTagID == 2) {
-      List<Command> Commands = Arrays.asList(
-        PathCommands.ForwardPathCommand(drivetrain, fieldRelative, m_period), 
-        PathCommands.BackwardPathCommand(drivetrain, fieldRelative, m_period));
-      List<Double> pathTimerStops = Arrays.asList(1.0,1.0);
-      Data data = new Data(Commands, pathTimerStops);
-      return data;
+      Command Commands = PathCommands.Path2Command(drivetrain, fieldRelative, m_period, robot);
+      //List<Double> targetPose = 1.0,1.0);
+      //Data data = new Data(Commands, targetPose);
+      return Commands;
     }
     else {
-      List<Command> Commands = Arrays.asList();
-      List<Double> pathTimerStops = Arrays.asList(0.0);
-      Data data = new Data(Commands, pathTimerStops);
-      return data;
+      Command Commands = PathCommands.BlankCommand();
+      //List<Double> targetPose = 0.0);
+      //Data data = new Data(Commands, targetPose);
+      return Commands;
     }
     // other tags vvv
   }
