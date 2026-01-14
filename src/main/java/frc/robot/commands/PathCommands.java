@@ -134,6 +134,8 @@ public class PathCommands {
 
         //condition = false;
         //end = false;
+        conditionList.replace(1,false);
+        conditionList.replace(2,false);
                 SmartDashboard.putBoolean("condition1",true);
                 //condition = false;
                 Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
@@ -170,11 +172,11 @@ public class PathCommands {
         //Drivetrain m_swerve,
         //Drivetrain m_swerve,
         /* */
+        conditionList.replace(1,false);
+        conditionList.replace(2,false);
         SmartDashboard.putBoolean("running Path1Command",true);
-        condition = false;
-        end = false;
                 SmartDashboard.putBoolean("condition1",true);
-                condition = false;
+                conditionList.replace(1,false);
                 Pose2d targetPose = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
                 List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
@@ -182,40 +184,40 @@ public class PathCommands {
                     drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                 }
                 else {
-                    condition = true;
+                    conditionList.replace(1,true);
                 }
-                if (condition) {
+                if (conditionList.get(1)) {
                     SmartDashboard.putBoolean("condition2",true);
-                    condition = false;
+                    conditionList.replace(1,false);
                     targetPose = new Pose2d(-0.5, -0.5, Rotation2d.fromDegrees(0));
                     values = CalcSwerveValues(drivetrain.getPose(), targetPose);
                     if (!CloseEnough(drivetrain.getPose(), targetPose)) {
                         drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                     }
                     else {
-                        end = true;
+                        conditionList.replace(2,true); // end
 
                     }
                 }
-                if (end) {
+                if (conditionList.get(2)) {
                     robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
                     robot.curAprilTagID = 0;
-                    condition = false;
-                    end = false;
+                    conditionList.replace(1,false);
+                    conditionList.replace(2,false); // end
                 }
             }
     
-    public static void AutoPrototype(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
+    public static void AutoPrototype1(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
         //Drivetrain m_swerve,
         //Drivetrain m_swerve,
         /* */
         //Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
         int targetTagID = 2;
         SmartDashboard.putBoolean("running AutoPrototype",true);
-        condition = false;
-        end = false;
-                SmartDashboard.putBoolean("condition1",true);
-                condition = false;
+        conditionList.replace(1,false);
+        conditionList.replace(2,false);
+                //SmartDashboard.putBoolean("condition1",true);
+                conditionList.replace(1,false);
 
                 Pose2d targetPose = new Pose2d(
                     Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
@@ -229,17 +231,53 @@ public class PathCommands {
                     drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                 }
                 else {
-                    condition = false;
-                    end = true;
+                    conditionList.replace(1,true);
                 }
-                if (end) {
+                if (conditionList.get(2)) {
                     robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
                     robot.curAprilTagID = 0;
-                    condition = false;
-                    end = false;
+                    conditionList.replace(1,false);
+                    conditionList.replace(2,false);
+
                 }
 
             }
+    public static void AutoPrototype2(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
+                //Drivetrain m_swerve,
+                //Drivetrain m_swerve,
+                /* */
+                //Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
+                int targetTagID = 3;
+                SmartDashboard.putBoolean("running AutoPrototype",true);
+                conditionList.replace(1,false);
+                conditionList.replace(2,false);
+                        //SmartDashboard.putBoolean("condition",true);
+                        conditionList.replace(1,false);
+        
+                        Pose2d targetPose = new Pose2d(
+                            Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
+                            Robot.AprilTagPoses.get(targetTagID).getY(),
+                            Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
+                        );
+                        
+                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
+        
+                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                        }
+                        else {
+                            conditionList.replace(1,false);
+                            conditionList.replace(2,true);
+                        }
+                        if (conditionList.get(2)) {
+                            robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                            robot.curAprilTagID = 0;
+                            conditionList.replace(1,false);
+                            conditionList.replace(2,false);
+
+                        }
+        
+                    }
     /**
      * Field relative drive command using joystick for linear control and PID for angular control.
      * Possible use cases include snapping to an angle, aiming at a vision target, or controlling

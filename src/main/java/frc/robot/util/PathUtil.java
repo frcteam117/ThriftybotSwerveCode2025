@@ -49,7 +49,7 @@ public class PathUtil {
       //Data data = new Data(Commands, targetPose);
     }
     else if (aprilTagID == 3) {
-      PathCommands.AutoPrototype(drivetrain, fieldRelative, m_period, robot, targetYaw);
+      PathCommands.AutoPrototype1(drivetrain, fieldRelative, m_period, robot, targetYaw);
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }
