@@ -57,7 +57,7 @@ public final class SwerveConstants {
         public static final boolean FRONT_LEFT_DRIVE_MOTOR_INVERTED = false;
         
         // Front Right Module
-        public static final int FRONT_RIGHT_DRIVE_MOTOR_ID = 5; // if motor doesn't work, change back to 0!!!!!
+        public static final int FRONT_RIGHT_DRIVE_MOTOR_ID = 0; // if motor doesn't work, change back to 5!!!!!
         public static final int FRONT_RIGHT_AZIMUTH_MOTOR_ID = 6;
         public static final double FRONT_RIGHT_ENCODER_OFFSET = 1949.797;
         public static final boolean FRONT_RIGHT_DRIVE_MOTOR_INVERTED = false;
