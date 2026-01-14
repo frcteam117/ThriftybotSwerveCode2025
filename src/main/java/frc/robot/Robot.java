@@ -57,7 +57,7 @@ public class Robot extends TimedRobot {
   PhotonCamera camera2;
   Timer timer;
   //Timer timer = new Timer();
-  public static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+  AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
   public static List<Pose3d> AprilTagPoses = Arrays.asList();
 
   //

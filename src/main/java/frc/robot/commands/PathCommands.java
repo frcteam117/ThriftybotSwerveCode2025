@@ -78,6 +78,7 @@ public class PathCommands {
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
     //--------------------------------------------
+
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
         double difY = Math.abs(targetPose.getY())-Math.abs(curPose.getY()); 
