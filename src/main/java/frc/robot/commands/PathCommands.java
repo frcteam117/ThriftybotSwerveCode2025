@@ -13,10 +13,13 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -25,6 +28,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -63,17 +67,27 @@ public class PathCommands {
   public static double limiter = 0.1;
   //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
   public static boolean end = false;
-
   Timer timer;
     //Drivetrain m_swerve; // does this just work????????
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9);
     //
+    //
+    AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    List<Pose3d> AprilTagPoses = Arrays.asList();
+    //
+    private PathCommands() {
+        for (int i = 0; i < 33; i++) { // 33 because 32 tags, index 0 will return a safe Null
+            Pose3d tagPose = kTagLayout.getTagPose(i).orElse(new Pose3d()); 
+            AprilTagPoses.add(tagPose);
+        }
+    } 
+    //--------------------------------------------
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
-        double difX = Math.abs(curPose.getX()-targetPose.getX());
-        double difY = Math.abs(curPose.getY()-targetPose.getY());
-        if ((difX+difY)/2 <= 0.1) {
+        double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
+        double difY = targetPose.getY()-curPose.getY();
+        if ((Math.abs(difX)+Math.abs(difY))/2 <= 0.1) {
             return true;
         }
         else { return false;}
@@ -83,160 +97,106 @@ public class PathCommands {
         double difX = Math.abs(curPose.getX()-targetPose.getX());
         double difY = Math.abs(curPose.getY()-targetPose.getY());
         //
-        if (difX > 1) {difX = 1;};
-        if (difY > 1) {difY = 1;};
         //
         double xSpeed = 0;
         double ySpeed = 0;
         double rot = 0; // add this later idk man
         //Rotation2d difRot = Pose2d.getRotation();
-        if (!(difX == 0) && !(difY == 0)) {
-             xSpeed = (difX / difY) * limiter;
-             ySpeed = (difY / difX) * limiter;
-        }
-        else {
-            if ((difX == 0) && (difY == 0))  {
-             xSpeed = 0 * limiter;
-                 ySpeed = 0 * limiter;
-            }
-            if (difX == 0) {
-                 xSpeed = 1 * limiter;
-                 ySpeed = 0 * limiter;
-            };
-            if (difY == 0) { 
-                 xSpeed = 0 * limiter;
-                 ySpeed = 1 * limiter;
-            };
-        }
+        xSpeed = difX * limiter;
+        ySpeed = difY * limiter;
         // is this math right?????
         List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
         return values;
 
     }
 
+    public static void BlankCommand() {
 
-    private PathCommands() {} // ADD A TIME FUNCTION???????
-
-    public static Command BlankCommand() {
-        return Commands.sequence(
-            Commands.runOnce (
-                () -> {}
-            )
-        );
     }
-    public static Command StopSwerve(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
+    public static void StopSwerve(Drivetrain drivetrain, Boolean fieldRelative, Double m_period) {
         //Drivetrain m_swerve,
-
-        return Commands.sequence(
-            Commands.runOnce (
-                () -> {
-                    drivetrain.drive(0.0, 0.0, 0.0, fieldRelative, m_period); // add way to stop the robot?????
-                }
-            )
-        );
+                drivetrain.drive(0.0, 0.0, 0.0, fieldRelative, m_period); // add way to stop the robot?????
 
     }
 
     // path commands vvv
-
-    public static Command Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
+    // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
+    public static void Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         //Drivetrain m_swerve,
         //Drivetrain m_swerve,
+        /* */
+        SmartDashboard.putBoolean("running Path1Command",true);
         condition = false;
         end = false;
-        return Commands.sequence(
-            Commands.run(
-                () -> {
-                    condition = false;
-                    Pose2d targetPose = new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0));
-                    List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
+                SmartDashboard.putBoolean("condition1",true);
+                condition = false;
+                Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
+                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
+                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                }
+                else {
+                    condition = true;
+                }
+                if (condition) {
+                    SmartDashboard.putBoolean("condition2",true);
+                    condition = false;
+                    targetPose = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
+                    values = CalcSwerveValues(drivetrain.getPose(), targetPose);
                     if (!CloseEnough(drivetrain.getPose(), targetPose)) {
                         drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                     }
                     else {
-                        Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
-                        condition = true;
-                    }
-                }
-            ),
-            Commands.run(
-                () -> {
-                    if (condition) {
-                        condition = false;
-                        Pose2d targetPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(0));
-                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                        }
-                        else {
-                            Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
-                            end = true;
+                        end = true;
 
-                        }
                     }
                 }
-            ),
-            Commands.run(
-                () -> {
-                    if (end) {
-                        robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                        condition = false;
-                        end = false;
-                    }
+                if (end) {
+                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                    condition = false;
+                    end = false;
                 }
-            )
-        );
 
     }
 
-    public static Command Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
+    public static void Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         //Drivetrain m_swerve,
+        //Drivetrain m_swerve,
+        /* */
+        SmartDashboard.putBoolean("running Path1Command",true);
         condition = false;
         end = false;
-        return Commands.sequence(
-            Commands.run(
-                () -> {
-                    condition = false;
-                    Pose2d targetPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(0));
-                    List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                SmartDashboard.putBoolean("condition1",true);
+                condition = false;
+                Pose2d targetPose = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
+                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
+                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                }
+                else {
+                    condition = true;
+                }
+                if (condition) {
+                    SmartDashboard.putBoolean("condition2",true);
+                    condition = false;
+                    targetPose = new Pose2d(-0.5, -0.5, Rotation2d.fromDegrees(0));
+                    values = CalcSwerveValues(drivetrain.getPose(), targetPose);
+                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
                         drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                     }
                     else {
-                        Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
-                        condition = true;
-                    }
-                }
-            ),
-            Commands.run(
-                () -> {
-                    if (condition) {
-                        condition = false;
-                        Pose2d targetPose = new Pose2d(2.0, 1.0, Rotation2d.fromDegrees(0));
-                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                        }
-                        else {
-                            Path1Command(drivetrain, fieldRelative, m_period, robot).cancel(); // does this actually stop the command???? IDK
-                            end = true;
+                        end = true;
 
-                        }
                     }
                 }
-            ),
-            Commands.run(
-                () -> {
-                    if (end) {
-                        robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                        condition = false;
-                        end = false;
-                    }
+                if (end) {
+                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                    robot.curAprilTagID = 0;
+                    condition = false;
+                    end = false;
                 }
-            )
-        );
 
     }
     /**

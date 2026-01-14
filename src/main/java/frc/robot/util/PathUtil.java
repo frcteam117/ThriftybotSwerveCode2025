@@ -31,31 +31,27 @@ public class PathUtil {
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private PathUtil() {} // ADD WAY TO HAVE MULTIPLE PATHS FOR ONE APRILTAG???? MORE ARRAYS IDK
   
-  public static Command getPathFromTagID(int aprilTagID, Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
+  public static void getPathFromTagID(int aprilTagID, Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
     // commands for each tag: // use fieldRelative to determine if it should be fieldRelative or just offSet!!!!!!!!!
     if (aprilTagID == 0) {
-      Command Commands = PathCommands.BlankCommand();
+      PathCommands.BlankCommand();
       //List<Double> targetPose = ;
       //Data data = new Data(Commands, targetPose);
-      return Commands;
     }
     else if (aprilTagID == 1) {
-      Command Commands = PathCommands.Path1Command(drivetrain, fieldRelative, m_period, robot);
+      PathCommands.Path1Command(drivetrain, fieldRelative, m_period, robot);
       //List<Double> targetPose = 1.0);
       //Data data = new Data(Commands, targetPose);
-      return Commands;
     }
     else if (aprilTagID == 2) {
-      Command Commands = PathCommands.Path2Command(drivetrain, fieldRelative, m_period, robot);
+      PathCommands.Path2Command(drivetrain, fieldRelative, m_period, robot);
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
-      return Commands;
     }
     else {
-      Command Commands = PathCommands.BlankCommand();
+      PathCommands.BlankCommand();
       //List<Double> targetPose = 0.0);
       //Data data = new Data(Commands, targetPose);
-      return Commands;
     }
     // other tags vvv
   }

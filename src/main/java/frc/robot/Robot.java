@@ -10,6 +10,8 @@ package frc.robot; // TEST WHEN U GET HOME BESTIEEEEEEEEEEEEEEEEEEEEEEEEEE
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -54,7 +56,8 @@ public class Robot extends TimedRobot {
   PhotonCamera camera2;
   Timer timer;
   //Timer timer = new Timer();
-
+  AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+  //
   List<Integer> aprilTagIDs = Arrays.asList(1, 2, 3); // do we need this?????? maybe get rid of it <---------------------
   public static int curAprilTagID = 0;
 
@@ -239,7 +242,7 @@ public class Robot extends TimedRobot {
             }
         }
         else {
-            fieldRelative = false;
+            fieldRelative = true;
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
         }
                     
