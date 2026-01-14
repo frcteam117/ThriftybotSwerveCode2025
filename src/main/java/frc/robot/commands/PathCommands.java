@@ -74,16 +74,9 @@ public class PathCommands {
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9);
     //
     //
-    AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-    List<Pose3d> AprilTagPoses = Arrays.asList();
+    static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
-    private PathCommands() {
-        for (int i = 0; i < 33; i++) { // 33 because 32 tags, index 0 will return a safe Null
-            Pose3d tagPose = kTagLayout.getTagPose(i).orElse(new Pose3d()); 
-            AprilTagPoses.add(tagPose);
-        }
-        SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
-    } 
     //--------------------------------------------
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
@@ -127,6 +120,7 @@ public class PathCommands {
     public static void Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         //Drivetrain m_swerve,
         //Drivetrain m_swerve,
+        //SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
         /* */
         SmartDashboard.putBoolean("running Path1Command",true);
         condition = false;
@@ -200,8 +194,43 @@ public class PathCommands {
                     condition = false;
                     end = false;
                 }
+            }
+    
+    public static void AutoPrototype(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
+        //Drivetrain m_swerve,
+        //Drivetrain m_swerve,
+        /* */
+        //Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
+        int targetTagID = 2;
+        SmartDashboard.putBoolean("running AutoPrototype",true);
+        condition = false;
+        end = false;
+                SmartDashboard.putBoolean("condition1",true);
+                condition = false;
 
-    }
+                Pose2d targetPose = new Pose2d(
+                    Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
+                    Robot.AprilTagPoses.get(targetTagID).getY(),
+                    Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
+                );
+                
+                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
+
+                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                }
+                else {
+                    condition = false;
+                    end = true;
+                }
+                if (end) {
+                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                    robot.curAprilTagID = 0;
+                    condition = false;
+                    end = false;
+                }
+
+            }
     /**
      * Field relative drive command using joystick for linear control and PID for angular control.
      * Possible use cases include snapping to an angle, aiming at a vision target, or controlling

@@ -15,6 +15,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.PS5Controller;
 import edu.wpi.first.wpilibj.SerialPort;
@@ -56,12 +57,14 @@ public class Robot extends TimedRobot {
   PhotonCamera camera2;
   Timer timer;
   //Timer timer = new Timer();
-  AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+  public static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+  public static List<Pose3d> AprilTagPoses = Arrays.asList();
+
   //
   List<Integer> aprilTagIDs = Arrays.asList(1, 2, 3); // do we need this?????? maybe get rid of it <---------------------
   public static int curAprilTagID = 0;
 
-  double targetYaw;
+  double targetYaw = 0;
   double targetRange; // from photonvision docs
   double kPVision_Turn;
   
@@ -79,6 +82,7 @@ public class Robot extends TimedRobot {
   int totalPathSteps = 0;
 
   Command curPathCommand;
+
   
   public Robot () {
 
@@ -93,6 +97,12 @@ public class Robot extends TimedRobot {
     Rotation2d originRot = new Rotation2d(0);
     Pose2d origin = new Pose2d(0,0,originRot);
     m_swerve.resetOdometry(origin);
+    //
+    for (int i = 0; i < 33; i++) { // 33 because 32 tags, index 0 will return a safe Null
+        Pose3d tagPose = kTagLayout.getTagPose(i).orElse(new Pose3d()); 
+        AprilTagPoses.add(tagPose);
+    }
+    SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
 
   }
   @Override
@@ -234,7 +244,7 @@ public class Robot extends TimedRobot {
                     if (!pathRunning) { // start path
                         SmartDashboard.putNumber("check #",5);
                         curPathStep = 1;
-                        PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this);
+                        PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this, targetYaw); // is targetYaw right here?
                         //Command a = () -> curPathCommand.schedule();
                         //curPathCommand = {() -> PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this)};
 
@@ -244,6 +254,7 @@ public class Robot extends TimedRobot {
         }
         else {
             fieldRelative = true;
+            targetYaw = 0;
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
         }
                     
