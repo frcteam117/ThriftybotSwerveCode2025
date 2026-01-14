@@ -47,8 +47,10 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.time.Period;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -75,6 +77,11 @@ public class PathCommands {
     //
     //
     static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    static Map<Integer,Boolean> conditionList = Map.of(
+        1,false,
+        2,false,
+        3,false,
+        4,false);
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
     //--------------------------------------------
@@ -124,10 +131,11 @@ public class PathCommands {
         //SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
         /* */
         SmartDashboard.putBoolean("running Path1Command",true);
-        condition = false;
-        end = false;
+
+        //condition = false;
+        //end = false;
                 SmartDashboard.putBoolean("condition1",true);
-                condition = false;
+                //condition = false;
                 Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
                 List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
@@ -135,11 +143,11 @@ public class PathCommands {
                     drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                 }
                 else {
-                    condition = true;
+                    conditionList.replace(1,true);
                 }
-                if (condition) {
+                if (conditionList.get(1)) {
                     SmartDashboard.putBoolean("condition2",true);
-                    condition = false;
+                    conditionList.replace(1,false);
                     targetPose = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
                     values = CalcSwerveValues(drivetrain.getPose(), targetPose);
                     if (!CloseEnough(drivetrain.getPose(), targetPose)) {
@@ -152,8 +160,8 @@ public class PathCommands {
                 }
                 if (end) {
                     robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                    condition = false;
-                    end = false;
+                    conditionList.replace(1,false);
+                    conditionList.replace(2,false); // end
                 }
 
     }
