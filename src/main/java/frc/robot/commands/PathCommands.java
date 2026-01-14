@@ -82,11 +82,12 @@ public class PathCommands {
             Pose3d tagPose = kTagLayout.getTagPose(i).orElse(new Pose3d()); 
             AprilTagPoses.add(tagPose);
         }
+        SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
     } 
     //--------------------------------------------
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
-        double difY = targetPose.getY()-curPose.getY();
+        double difY = Math.abs(targetPose.getY())-Math.abs(curPose.getY()); 
         if ((Math.abs(difX)+Math.abs(difY))/2 <= 0.1) {
             return true;
         }
@@ -94,8 +95,9 @@ public class PathCommands {
     }
 
     private static List<Double> CalcSwerveValues(Pose2d curPose, Pose2d targetPose) {
-        double difX = Math.abs(curPose.getX()-targetPose.getX());
-        double difY = Math.abs(curPose.getY()-targetPose.getY());
+        double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
+        double difY = Math.abs(targetPose.getY())-Math.abs(curPose.getY()); 
+        double difRot = targetPose.getRotation().getDegrees()-curPose.getRotation().getDegrees();
         //
         //
         double xSpeed = 0;
@@ -104,6 +106,7 @@ public class PathCommands {
         //Rotation2d difRot = Pose2d.getRotation();
         xSpeed = difX * limiter;
         ySpeed = difY * limiter;
+        rot = difRot;
         // is this math right?????
         List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
         return values;

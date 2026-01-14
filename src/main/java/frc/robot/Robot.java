@@ -81,6 +81,7 @@ public class Robot extends TimedRobot {
   Command curPathCommand;
   
   public Robot () {
+
     SmartDashboard.putBoolean("running Path1Command",true);
     timer = new Timer();
     timer.reset();
