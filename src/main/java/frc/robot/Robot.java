@@ -58,7 +58,7 @@ public class Robot extends TimedRobot {
   Timer timer;
   //Timer timer = new Timer();
   AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-  public static List<Pose3d> AprilTagPoses = Arrays.asList();
+  public static List<Pose3d> AprilTagPoses;
 
   //
   List<Integer> aprilTagIDs = Arrays.asList(1, 2, 3); // do we need this?????? maybe get rid of it <---------------------
@@ -87,6 +87,7 @@ public class Robot extends TimedRobot {
   public Robot () {
 
     SmartDashboard.putBoolean("running Path1Command",true);
+    AprilTagPoses = Arrays.asList();
     timer = new Timer();
     timer.reset();
     timer.stop();
@@ -98,12 +99,15 @@ public class Robot extends TimedRobot {
     Pose2d origin = new Pose2d(0,0,originRot);
     m_swerve.resetOdometry(origin);
     //
-    for (int i = 0; i < 33; i++) { // 33 because 32 tags, index 0 will return a safe Null
+    
+    for (int i = 1; i < 33; i++) { // 33 because 32 tags, index 0 will return a safe Null
         Pose3d tagPose = kTagLayout.getTagPose(i).orElse(new Pose3d()); 
-        AprilTagPoses.add(tagPose);
+        SmartDashboard.putNumber("tagPose X",tagPose.getX());
+        //AprilTagPoses.add(tagPose);
     }
-    SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
-
+        
+    //SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
+  
   }
   @Override
   public void robotPeriodic() {

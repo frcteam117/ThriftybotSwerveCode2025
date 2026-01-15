@@ -97,7 +97,7 @@ public class PathCommands {
                 else {
                     conditionList.replace(i,true);
                     if (i > 1) {
-                        conditionList.replace(i-1,false); // replace previous con w false
+                        conditionList.replace(i,false); // replace previous con w false
                     }
                 }
                 if (conditionList.get(targetPoses.size()-1)) { // if at end step
@@ -150,6 +150,9 @@ public class PathCommands {
     public static void RetractHopper() {
 
     }
+    public static void SetShooterHoodAngle() {
+
+    }
     public static void DeployIntake() {
 
     }
@@ -174,9 +177,9 @@ public class PathCommands {
     public static void ClimbLevel1() {
 
     }
-    public static void ClimbLevel3() {
+    //public static void ClimbLevel3() {
 
-    }
+    //}
 
     // path commands vvv
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
