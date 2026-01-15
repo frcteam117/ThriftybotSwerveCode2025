@@ -143,6 +143,40 @@ public class PathCommands {
                 drivetrain.drive(0.0, 0.0, 0.0, fieldRelative, m_period); // add way to stop the robot?????
 
     }
+    // non-drivetrain subsystem commands:
+    public static void ExpandHopper() {
+
+    }
+    public static void RetractHopper() {
+
+    }
+    public static void DeployIntake() {
+
+    }
+    public static void RetractIntake() {// should this be UndeployIntake instead?
+
+    }
+    public static void IntakeFuel() {
+
+    }
+    public static void ShootFuel() {
+
+    }
+    public static void TowerAlign(String position) { // position will be like front left/center/right or side or back yknow
+
+    }
+    public static void ExtendClimber() { // dunno about this one
+
+    }
+    public static void RetractClimber() { // dunno about this one
+
+    }
+    public static void ClimbLevel1() {
+
+    }
+    public static void ClimbLevel3() {
+
+    }
 
     // path commands vvv
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
