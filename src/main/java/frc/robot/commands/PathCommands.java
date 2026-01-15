@@ -85,7 +85,28 @@ public class PathCommands {
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
     //--------------------------------------------
+    private static void pathSteps(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot,
+     Integer stepNum, List<Pose2d> targetPoses) {
+        for (int i = 1; 1 <= stepNum; i++) {
+                Pose2d targetPose = targetPoses.get(i-1);
+                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
+                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                }
+                else {
+                    conditionList.replace(i,true);
+                    if (i > 1) {
+                        conditionList.replace(i-1,false); // replace previous con w false
+                    }
+                }
+                if (conditionList.get(targetPoses.size()-1)) { // if at end step
+                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
+                    conditionList.replace(targetPoses.size()-1,false);
+                    conditionList.replace(2,false); // end
+                }
+        }
+    }
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
         double difY = Math.abs(targetPose.getY())-Math.abs(curPose.getY()); 
@@ -126,161 +147,45 @@ public class PathCommands {
     // path commands vvv
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
     public static void Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
-        //Drivetrain m_swerve,
-        //Drivetrain m_swerve,
-        //SmartDashboard.putNumber("AprilTag field pose - X",AprilTagPoses.get(1).getX());
-        /* */
         SmartDashboard.putBoolean("running Path1Command",true);
-
-        //condition = false;
-        //end = false;
-        conditionList.replace(1,false);
-        conditionList.replace(2,false);
-                SmartDashboard.putBoolean("condition1",true);
-                //condition = false;
-                Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
-                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-
-                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                }
-                else {
-                    conditionList.replace(1,true);
-                }
-                if (conditionList.get(1)) {
-                    SmartDashboard.putBoolean("condition2",true);
-                    conditionList.replace(1,false);
-                    targetPose = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
-                    values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                        drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                    }
-                    else {
-                        end = true;
-
-                    }
-                }
-                if (end) {
-                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                    conditionList.replace(1,false);
-                    conditionList.replace(2,false); // end
-                }
+        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0)),
+        new Pose2d(0.5, -0.5, Rotation2d.fromDegrees(0)));
+        pathSteps(drivetrain, fieldRelative, m_period, robot,
+        2, targetPoses); //
 
     }
 
     public static void Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
-        //Drivetrain m_swerve,
-        //Drivetrain m_swerve,
-        /* */
-        conditionList.replace(1,false);
-        conditionList.replace(2,false);
-        SmartDashboard.putBoolean("running Path1Command",true);
-                SmartDashboard.putBoolean("condition1",true);
-                conditionList.replace(1,false);
-                Pose2d targetPose = new Pose2d(0.5, 0.5, Rotation2d.fromDegrees(0));
-                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-
-                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                }
-                else {
-                    conditionList.replace(1,true);
-                }
-                if (conditionList.get(1)) {
-                    SmartDashboard.putBoolean("condition2",true);
-                    conditionList.replace(1,false);
-                    targetPose = new Pose2d(-0.5, -0.5, Rotation2d.fromDegrees(0));
-                    values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                        drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                    }
-                    else {
-                        conditionList.replace(2,true); // end
-
-                    }
-                }
-                if (conditionList.get(2)) {
-                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                    robot.curAprilTagID = 0;
-                    conditionList.replace(1,false);
-                    conditionList.replace(2,false); // end
-                }
-            }
+        SmartDashboard.putBoolean("running Path2Command",true);
+        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(0.5, -0.5, Rotation2d.fromDegrees(0)),
+        new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0)));
+        pathSteps(drivetrain, fieldRelative, m_period, robot,
+        2, targetPoses); //
+    }
     
-    public static void AutoPrototype1(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
-        //Drivetrain m_swerve,
-        //Drivetrain m_swerve,
-        /* */
-        //Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
-        int targetTagID = 2;
-        SmartDashboard.putBoolean("running AutoPrototype",true);
-        conditionList.replace(1,false);
-        conditionList.replace(2,false);
-                //SmartDashboard.putBoolean("condition1",true);
-                conditionList.replace(1,false);
-
-                Pose2d targetPose = new Pose2d(
+    public static void AutoPrototype1(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, 
+    Robot robot, Double targetYaw) {
+                int targetTagID = 2;
+                SmartDashboard.putBoolean("running AutoPrototype",true);
+                List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
                     Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
                     Robot.AprilTagPoses.get(targetTagID).getY(),
                     Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
+                )
                 );
-                
-                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
+                pathSteps(drivetrain, fieldRelative, m_period, robot, 1, targetPoses); //
 
-                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                }
-                else {
-                    conditionList.replace(1,true);
-                }
-                if (conditionList.get(2)) {
-                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                    robot.curAprilTagID = 0;
-                    conditionList.replace(1,false);
-                    conditionList.replace(2,false);
-
-                }
-
-            }
-    public static void AutoPrototype2(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
-                //Drivetrain m_swerve,
-                //Drivetrain m_swerve,
-                /* */
-                //Pose2d targetPose = new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0));
-                int targetTagID = 3;
-                SmartDashboard.putBoolean("running AutoPrototype",true);
-                conditionList.replace(1,false);
-                conditionList.replace(2,false);
-                        //SmartDashboard.putBoolean("condition",true);
-                        conditionList.replace(1,false);
-        
-                        Pose2d targetPose = new Pose2d(
-                            Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
-                            Robot.AprilTagPoses.get(targetTagID).getY(),
-                            Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
-                        );
-                        
-                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-        
-                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                        }
-                        else {
-                            conditionList.replace(1,false);
-                            conditionList.replace(2,true);
-                        }
-                        if (conditionList.get(2)) {
-                            robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                            robot.curAprilTagID = 0;
-                            conditionList.replace(1,false);
-                            conditionList.replace(2,false);
-
-                        }
-        
-                    }
-    /**
-     * Field relative drive command using joystick for linear control and PID for angular control.
-     * Possible use cases include snapping to an angle, aiming at a vision target, or controlling
-     * absolute rotation with a joystick.
-     */
     }
+    public static void AutoPrototype2(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
+        int targetTagID = 3;
+        SmartDashboard.putBoolean("running AutoPrototype",true);
+        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
+            Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
+            Robot.AprilTagPoses.get(targetTagID).getY(),
+            Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
+        )
+        );
+        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, targetPoses); //
+    }
+
+}
