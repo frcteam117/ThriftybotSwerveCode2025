@@ -18,6 +18,7 @@ package frc.robot.util;
 import java.util.Arrays;
 import java.util.List;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 //import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -39,7 +40,9 @@ public class PathUtil {
       //Data data = new Data(Commands, targetPose);
     }
     else if (aprilTagID == 1) {
+      //SmartDashboard.putBoolean("before calling Path1Command",true);
       PathCommands.Path1Command(drivetrain, fieldRelative, m_period, robot);
+      //SmartDashboard.putBoolean("after calling Path1Command", true);
       //List<Double> targetPose = 1.0);
       //Data data = new Data(Commands, targetPose);
     }

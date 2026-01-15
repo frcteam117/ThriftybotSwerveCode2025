@@ -77,17 +77,23 @@ public class PathCommands {
     //
     //
     static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-    static Map<Integer,Boolean> conditionList = Map.of(
+    static Map<Integer,Boolean> conditionMap = Map.of(
         1,false,
         2,false,
         3,false,
         4,false);
+    static int curStep = 0;
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
     //--------------------------------------------
     private static void pathSteps(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot,
      Integer stepNum, List<Pose2d> targetPoses) {
-        for (int i = 1; 1 <= stepNum; i++) {
+        for (int i = 1; i <= stepNum; i++) {
+            if (!conditionMap.get(stepNum)) { // if at end step
+                //SmartDashboard.putNumber("length of targetPoses",targetPoses.size());
+                //SmartDashboard.putNumber("stepNum",stepNum);
+                System.out.println("length of targetPoses & stepNum: "+targetPoses.size()+" "+stepNum);
+                System.out.println("i: "+i);
                 Pose2d targetPose = targetPoses.get(i-1);
                 List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
@@ -95,17 +101,21 @@ public class PathCommands {
                     drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                 }
                 else {
-                    conditionList.replace(i,true);
+                    conditionMap.replace(i,true);
                     if (i > 1) {
-                        conditionList.replace(i,false); // replace previous con w false
+                        conditionMap.replace((i-1),false); // replace previous con w false
                     }
+                    System.out.println(conditionMap);
                 }
-                if (conditionList.get(targetPoses.size()-1)) { // if at end step
+            }
+                else {
                     robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                    conditionList.replace(targetPoses.size()-1,false);
-                    conditionList.replace(2,false); // end
+                    conditionMap.replace(targetPoses.size()-1,false);
+                    conditionMap.replace(2,false); // end
+                    System.out.println(conditionMap);
                 }
-        }
+
+            }
     }
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
@@ -129,6 +139,12 @@ public class PathCommands {
         xSpeed = difX * limiter;
         ySpeed = difY * limiter;
         rot = difRot;
+        if (difX > 1) {
+            difX = 1;
+        }
+        if (difY > 1) {
+            difY = 1;
+        }
         // is this math right?????
         List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
         return values;
@@ -184,7 +200,7 @@ public class PathCommands {
     // path commands vvv
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
     public static void Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
-        SmartDashboard.putBoolean("running Path1Command",true);
+        SmartDashboard.putBoolean("running Path1Command",false);
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0)),
         new Pose2d(0.5, -0.5, Rotation2d.fromDegrees(0)));
         pathSteps(drivetrain, fieldRelative, m_period, robot,
