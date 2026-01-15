@@ -165,7 +165,7 @@ public class PathCommands {
     
     public static void AutoPrototype1(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, 
     Robot robot, Double targetYaw) {
-                int targetTagID = 2;
+                int targetTagID = 4;
                 SmartDashboard.putBoolean("running AutoPrototype",true);
                 List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
                     Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag

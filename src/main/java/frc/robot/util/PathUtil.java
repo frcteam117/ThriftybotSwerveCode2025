@@ -53,6 +53,11 @@ public class PathUtil {
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }
+    else if (aprilTagID == 4) {
+      PathCommands.AutoPrototype2(drivetrain, fieldRelative, m_period, robot, targetYaw);
+      //List<Double> targetPose = 1.0,1.0);
+      //Data data = new Data(Commands, targetPose);
+    }
     else {
       PathCommands.BlankCommand();
       //List<Double> targetPose = 0.0);
