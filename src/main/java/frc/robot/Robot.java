@@ -170,7 +170,7 @@ public class Robot extends TimedRobot {
 
   private void driveWithJoystick(boolean fieldRelative) {
         //setSwerve(0,0,0, fieldRelative);
-        boolean targetVisible = false;
+        boolean targetVisible = true;
         // Read in relevant data from the Camera
         var results = Arrays.asList(camera0.getAllUnreadResults(),camera2.getAllUnreadResults());
 

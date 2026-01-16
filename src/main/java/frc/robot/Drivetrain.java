@@ -53,8 +53,8 @@ public class Drivetrain {
         
     private final Supplier<Rotation2d> m_gyroSupplier;
 
-    private final StructArrayPublisher<SwerveModuleState> actualStatePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("Measured Swerve", SwerveModuleState.struct).publish();
-    private final StructArrayPublisher<SwerveModuleState> goalStatePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("Goal Swerve", SwerveModuleState.struct).publish();
+    private final StructArrayPublisher<SwerveModuleState> actualStatePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("Drive/Measured Swerve", SwerveModuleState.struct).publish();
+    private final StructArrayPublisher<SwerveModuleState> goalStatePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("Drive/Goal Swerve", SwerveModuleState.struct).publish();
 
     private final SwerveDriveKinematics m_kinematics =
         new SwerveDriveKinematics(

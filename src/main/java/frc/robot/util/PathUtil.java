@@ -25,6 +25,8 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.commands.*;
 import frc.robot.Robot;
 import frc.robot.Drivetrain;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class PathUtil {
   //public record Data(Command Commands,List<Double> targetPose) {};
@@ -50,9 +52,9 @@ public class PathUtil {
       PathCommands.Path2Command(drivetrain, fieldRelative, m_period, robot);
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
-    }
+    }//DriverStation.getAlliance() add ts to params vvvvv
     else if (aprilTagID == 3) {
-      PathCommands.AutoPrototype1(drivetrain, fieldRelative, m_period, robot, targetYaw);
+      PathCommands.DriveToCenterFromOrigin(drivetrain, fieldRelative, m_period, robot, m_period);
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }

@@ -53,6 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class PathCommands {
   private static final double DEADBAND = 0.1;
@@ -225,18 +227,21 @@ public class PathCommands {
         2, targetPoses); //
     }
     
-    public static void AutoPrototype1(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, 
+    public static void DriveToCenterFromOrigin(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, 
     Robot robot, Double targetYaw) {
-                int targetTagID = 4;
-                SmartDashboard.putBoolean("running AutoPrototype",true);
-                List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
-                    Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
-                    Robot.AprilTagPoses.get(targetTagID).getY(),
-                    Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
-                )
-                );
-                pathSteps(drivetrain, fieldRelative, m_period, robot, 1, targetPoses); //
-
+        //if (alliance.isPresent()) { // maybe put this back? maybe just hope & pray
+            //if (alliance.get() == Alliance.Red) // add alliance specific stuff l8r idgaf rn
+                    int targetTagID = 12;
+                    SmartDashboard.putBoolean("running AutoPrototype",true);
+                    List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
+                        Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
+                        Robot.AprilTagPoses.get(targetTagID).getY(),
+                        Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
+                    ),
+                    new Pose2d(6.5, 0.6, Rotation2d.fromDegrees(0)),
+                    new Pose2d(8.3, 4, Rotation2d.fromDegrees(0))
+                    );
+        //    }
     }
     public static void AutoPrototype2(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
         int targetTagID = 3;
@@ -248,6 +253,11 @@ public class PathCommands {
         )
         );
         pathSteps(drivetrain, fieldRelative, m_period, robot, 1, targetPoses); //
+        if (CloseEnough(drivetrain.getPose(),
+        new Pose2d(8.3, 4, Rotation2d.fromDegrees(0)) 
+        ) && !robot.pathRunning) { // if at target pose and no path is running
+            // run intake methods here or whatever
+        }
     }
 
 }
