@@ -265,7 +265,7 @@ public class Robot extends TimedRobot {
             fieldRelative = true;
             targetYaw = 0;
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
-            PathCommands.curStep = 1;
+            PathCommands.curMovementStep = 1;
             //curAprilTagID = 0;
         }
                     

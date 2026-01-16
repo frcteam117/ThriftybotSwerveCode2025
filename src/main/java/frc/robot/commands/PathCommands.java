@@ -67,7 +67,7 @@ public class PathCommands {
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   //
-  public static boolean condition = false; // this whole system is dogshit but this is prolly the worst part. its funny tho
+  //public static boolean condition = false; // this whole system is dogshit but this is prolly the worst part. its funny tho
   public static double limiter = 0.2;
   public static double speedCap = 0.5;
   //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
@@ -81,39 +81,53 @@ public class PathCommands {
     //
     //
     static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-    public static int curStep = 1;
+    public static int curMovementStep = 1;
+    public static int curSequenceStep = 1;
+    public static int totalSequenceSteps = 0; // prolly a better way to do this using another overarchig
+    // - sequenceSteps method? but idk i'll wait till i have more motivation
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
-    //--------------------------------------------
+
+    //-------------------------------------------- this code is disgusting please rework it future me holy crap
     private static void pathSteps(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot,
-     Integer stepNum, List<Pose2d> targetPoses) {
-        for (int i = 1; i <= stepNum; i++) {
-            if (!(curStep == stepNum+1)) { // if at end step
-                if (i == curStep) {
-                    //SmartDashboard.putNumber("length of targetPoses",targetPoses.size());
-                    //SmartDashboard.putNumber("stepNum",stepNum);
-                    System.out.println("length of targetPoses & stepNum: "+targetPoses.size()+" "+stepNum);
-                    System.out.println("i: "+i);
-                    Pose2d targetPose = targetPoses.get(i-1);
-                    List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
+     Integer stepNum, int stepInSequence, List<Pose2d> targetPoses) {
+        if (stepInSequence == curSequenceStep) {
+            for (int i = 1; i <= stepNum; i++) {
+                if (!(curMovementStep == stepNum+1)) { // if at end step
+                    if (i == curMovementStep) {
+                        //SmartDashboard.putNumber("length of targetPoses",targetPoses.size());
+                        //SmartDashboard.putNumber("stepNum",stepNum);
+                        System.out.println("length of targetPoses & stepNum: "+targetPoses.size()+" "+stepNum);
+                        System.out.println("i: "+i);
+                        Pose2d targetPose = targetPoses.get(i-1);
+                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
-                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                        drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                        }
+                        else {
+                            //System.out.println(conditionMap);
+                            curMovementStep += 1; //  add a stopSwerve() here?
+                        }
                     }
+                }
                     else {
+                        robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
                         //System.out.println(conditionMap);
-                        curStep += 1; //  add a stopSwerve() here?
-                    }
-                }
-            }
-                else {
-                    robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                    //System.out.println(conditionMap);
-                    curStep = 1;
-                    robot.curAprilTagID = 0;
-                }
+                        curMovementStep = 1;
+                        robot.curAprilTagID = 0;
+                        if (curSequenceStep == totalSequenceSteps) {
+                            totalSequenceSteps = 0;
+                            curSequenceStep = 1;
+                        }
+                        else {
+                            curSequenceStep += 1;
+                        }
 
-            }
+                    }
+
+                }
+        }
     }
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
@@ -168,40 +182,40 @@ public class PathCommands {
 
     }
     // non-drivetrain subsystem commands:
-    public static void ExpandHopper() {
+    public static void ExpandHopper(Integer stepInSequence) {
 
     }
-    public static void RetractHopper() {
+    public static void RetractHopper(Integer stepInSequence) {
 
     }
-    public static void SetShooterHoodAngle() {
+    public static void SetShooterHoodAngle(Integer stepInSequence) {
 
     }
-    public static void DeployIntake() {
+    public static void DeployIntake(Integer stepInSequence) {
 
     }
-    public static void RetractIntake() {// should this be UndeployIntake instead?
+    public static void RetractIntake(Integer stepInSequence) {// should this be UndeployIntake instead?
 
     }
-    public static void IntakeFuel() {
+    public static void IntakeFuel(Integer stepInSequence) {
 
     }
-    public static void RunLeftShooter() { // adjust this?
+    public static void RunLeftShooter(Integer stepInSequence) { // adjust this?
 
     }
-    public static void RunRightShooter() { // adjust this?
+    public static void RunRightShooter(Integer stepInSequence) { // adjust this?
 
     }
-    public static void TowerAlign(String position) { // position will be like front left/center/right or side or back yknow
+    public static void TowerAlign(Integer stepInSequence, String position) { // position will be like front left/center/right or side or back yknow
 
     }
-    public static void ExtendClimber() { // dunno about this one
+    public static void ExtendClimber(Integer stepInSequence) { // dunno about this one
 
     }
-    public static void RetractClimber() { // dunno about this one
+    public static void RetractClimber(Integer stepInSequence) { // dunno about this one
 
     }
-    public static void ClimbLevel1() {
+    public static void ClimbLevel1(Integer stepInSequence) {
 
     }
     //public static void ClimbLevel3() {
@@ -215,7 +229,7 @@ public class PathCommands {
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)),
         new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)));
         pathSteps(drivetrain, fieldRelative, m_period, robot,
-        2, targetPoses); //
+        2, 1, targetPoses); //
 
     }
 
@@ -224,7 +238,7 @@ public class PathCommands {
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)),
         new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)));
         pathSteps(drivetrain, fieldRelative, m_period, robot,
-        2, targetPoses); //
+        2, 1,targetPoses); //
     }
     
     public static void DriveToCenterFromOrigin(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, 
@@ -252,7 +266,7 @@ public class PathCommands {
             Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
         )
         );
-        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, targetPoses); //
+        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, 1,targetPoses); //
         if (CloseEnough(drivetrain.getPose(),
         new Pose2d(8.3, 4, Rotation2d.fromDegrees(0)) 
         ) && !robot.pathRunning) { // if at target pose and no path is running
@@ -270,7 +284,7 @@ public class PathCommands {
             Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
         )
         );
-        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, targetPoses); //
+        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, 1, targetPoses); //
         if (CloseEnough(drivetrain.getPose(),
         new Pose2d(8.3, 4, Rotation2d.fromDegrees(0)) 
         ) && !robot.pathRunning) { // if at target pose and no path is running
