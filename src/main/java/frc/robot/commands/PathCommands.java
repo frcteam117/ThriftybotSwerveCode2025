@@ -116,10 +116,20 @@ public class PathCommands {
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
         double difY = Math.abs(targetPose.getY())-Math.abs(curPose.getY()); 
-        if ((Math.abs(difX)+Math.abs(difY))/2 <= 0.1) {
-            return true;
+        if ((Math.abs(difX)+Math.abs(difY))/2 <= 0.2) {
+            double difRot = Math.abs(
+                targetPose.getRotation().getDegrees())
+                - Math.abs(curPose.getRotation().getDegrees()); 
+            if (difRot <= 5) {
+                return true;
+            }
+            else {
+                return false;
+            }
         }
-        else { return false;}
+        else {
+            return false;
+        }
     }
 
     private static List<Double> CalcSwerveValues(Pose2d curPose, Pose2d targetPose) {
