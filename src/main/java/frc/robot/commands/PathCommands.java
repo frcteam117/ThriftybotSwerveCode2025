@@ -258,6 +258,25 @@ public class PathCommands {
         ) && !robot.pathRunning) { // if at target pose and no path is running
             // run intake methods here or whatever
         }
+    } // the autos should probably be in their own folder but idgaf rn ^^ vvvvvvv
+    // add a way to autoset the robots position to be wherever it is t the start of the game,
+    // - or have it detect it based on what tags it can see???? <------------- do THISSSSSSSSSSSSSSSSSS
+    public static void ShootThenClimbAuto(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
+        int targetTagID = 3;
+        SmartDashboard.putBoolean("running AutoPrototype",true);
+        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
+            Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
+            Robot.AprilTagPoses.get(targetTagID).getY(),
+            Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
+        )
+        );
+        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, targetPoses); //
+        if (CloseEnough(drivetrain.getPose(),
+        new Pose2d(8.3, 4, Rotation2d.fromDegrees(0)) 
+        ) && !robot.pathRunning) { // if at target pose and no path is running
+            // run intake methods here or whatever
+        }
     }
+
 
 }
