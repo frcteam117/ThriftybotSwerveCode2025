@@ -44,9 +44,10 @@ import org.photonvision.PhotonUtils;
 public class Robot extends TimedRobot {
   // private final XboxController m_controller = new XboxController(0);
   private final PS5Controller m_controller = new PS5Controller(0);
-  AHRS gyro = new AHRS(NavXComType.kUSB1);
+   AHRS gyro = new AHRS(NavXComType.kUSB1);
     
   private final Drivetrain m_swerve = new Drivetrain(() -> Rotation2d.fromDegrees(gyro.getYaw()), new Pose2d());  // private final SimDrivetrain m_simSwerve = new SimDrivetrain(new Pose2d());
+  //private final Drivetrain m_swerve = new Drivetrain(() -> Rotation2d.fromDegrees(0), new Pose2d());  // private final SimDrivetrain m_simSwerve = new SimDrivetrain(new Pose2d());
 
   // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
   private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
@@ -218,7 +219,7 @@ public class Robot extends TimedRobot {
         }
         SmartDashboard.putBoolean("target visible", targetVisible);
         if (!targetVisible) {
-            curAprilTagID = 0;
+            //curAprilTagID = 0;
         }
 
         // Auto-align when requested
@@ -249,10 +250,14 @@ public class Robot extends TimedRobot {
                         SmartDashboard.putNumber("check #",5);
                         curPathStep = 1;
                         PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this, targetYaw); // is targetYaw right here?
+                        pathRunning = true;
                         //Command a = () -> curPathCommand.schedule();
                         //curPathCommand = {() -> PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this)};
 
                     }
+                }
+                else if (pathRunning) {
+                    PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this, targetYaw); // is targetYaw right here?
                 }
             }
         }
@@ -261,6 +266,7 @@ public class Robot extends TimedRobot {
             targetYaw = 0;
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
             PathCommands.curStep = 1;
+            //curAprilTagID = 0;
         }
                     
   }

@@ -66,7 +66,7 @@ public class PathCommands {
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   //
   public static boolean condition = false; // this whole system is dogshit but this is prolly the worst part. its funny tho
-  public static double limiter = 0.1;
+  public static double limiter = 0.05;
   //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
   public static boolean end = false;
   Timer timer;
@@ -84,7 +84,7 @@ public class PathCommands {
     private static void pathSteps(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot,
      Integer stepNum, List<Pose2d> targetPoses) {
         for (int i = 1; i <= stepNum; i++) {
-            if (curStep == stepNum+1) { // if at end step
+            if (!(curStep == stepNum+1)) { // if at end step
                 if (i == curStep) {
                     //SmartDashboard.putNumber("length of targetPoses",targetPoses.size());
                     //SmartDashboard.putNumber("stepNum",stepNum);
@@ -106,6 +106,7 @@ public class PathCommands {
                     robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
                     //System.out.println(conditionMap);
                     curStep = 1;
+                    robot.curAprilTagID = 0;
                 }
 
             }
@@ -132,11 +133,11 @@ public class PathCommands {
         xSpeed = difX * limiter;
         ySpeed = difY * limiter;
         rot = difRot;
-        if (difX > 1) {
-            difX = 1;
+        if (xSpeed > 1) {
+            xSpeed = 1;
         }
-        if (difY > 1) {
-            difY = 1;
+        if (ySpeed > 1) {
+            ySpeed = 1;
         }
         // is this math right?????
         List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
@@ -171,7 +172,10 @@ public class PathCommands {
     public static void IntakeFuel() {
 
     }
-    public static void ShootFuel() {
+    public static void RunLeftShooter() { // adjust this?
+
+    }
+    public static void RunRightShooter() { // adjust this?
 
     }
     public static void TowerAlign(String position) { // position will be like front left/center/right or side or back yknow
