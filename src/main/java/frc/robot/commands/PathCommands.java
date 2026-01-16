@@ -87,7 +87,8 @@ public class PathCommands {
     // - sequenceSteps method? but idk i'll wait till i have more motivation
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
-
+// NONE OF THESE ARE EVEN COMMANDS LIKE WHY IS THIS IN THE COMMANDS FOLDE HELP WHAT AM I DOING
+// do a logic run through with the new code when brain work better
     //-------------------------------------------- this code is disgusting please rework it future me holy crap
     private static void pathSteps(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot,
      Integer stepNum, int stepInSequence, List<Pose2d> targetPoses) {
