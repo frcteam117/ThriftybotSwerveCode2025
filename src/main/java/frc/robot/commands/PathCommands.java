@@ -66,9 +66,11 @@ public class PathCommands {
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
   //
   public static boolean condition = false; // this whole system is dogshit but this is prolly the worst part. its funny tho
-  public static double limiter = 0.05;
+  public static double limiter = 0.2;
+  public static double speedCap = 0.5;
   //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
   public static boolean end = false;
+
   Timer timer;
     //Drivetrain m_swerve; // does this just work????????
     private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
@@ -133,11 +135,11 @@ public class PathCommands {
         xSpeed = difX * limiter;
         ySpeed = difY * limiter;
         rot = difRot;
-        if (xSpeed > 1) {
-            xSpeed = 1;
+        if (xSpeed > speedCap) {
+            xSpeed = speedCap;
         }
-        if (ySpeed > 1) {
-            ySpeed = 1;
+        if (ySpeed > speedCap) {
+            ySpeed = speedCap;
         }
         // is this math right?????
         List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
@@ -198,8 +200,8 @@ public class PathCommands {
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
     public static void Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         SmartDashboard.putBoolean("running Path1Command",true);
-        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0)),
-        new Pose2d(0.5, -0.5, Rotation2d.fromDegrees(0)));
+        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)),
+        new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)));
         pathSteps(drivetrain, fieldRelative, m_period, robot,
         2, targetPoses); //
 
@@ -207,8 +209,8 @@ public class PathCommands {
 
     public static void Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         SmartDashboard.putBoolean("running Path2Command",true);
-        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(0.5, -0.5, Rotation2d.fromDegrees(0)),
-        new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0)));
+        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)),
+        new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)));
         pathSteps(drivetrain, fieldRelative, m_period, robot,
         2, targetPoses); //
     }
