@@ -77,42 +77,35 @@ public class PathCommands {
     //
     //
     static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-    static Map<Integer,Boolean> conditionMap = Map.of(
-        1,false,
-        2,false,
-        3,false,
-        4,false);
-    static int curStep = 0;
+    public static int curStep = 1;
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
     //--------------------------------------------
     private static void pathSteps(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot,
      Integer stepNum, List<Pose2d> targetPoses) {
         for (int i = 1; i <= stepNum; i++) {
-            if (!conditionMap.get(stepNum)) { // if at end step
-                //SmartDashboard.putNumber("length of targetPoses",targetPoses.size());
-                //SmartDashboard.putNumber("stepNum",stepNum);
-                System.out.println("length of targetPoses & stepNum: "+targetPoses.size()+" "+stepNum);
-                System.out.println("i: "+i);
-                Pose2d targetPose = targetPoses.get(i-1);
-                List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
+            if (curStep == stepNum+1) { // if at end step
+                if (i == curStep) {
+                    //SmartDashboard.putNumber("length of targetPoses",targetPoses.size());
+                    //SmartDashboard.putNumber("stepNum",stepNum);
+                    System.out.println("length of targetPoses & stepNum: "+targetPoses.size()+" "+stepNum);
+                    System.out.println("i: "+i);
+                    Pose2d targetPose = targetPoses.get(i-1);
+                    List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
-                if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                    drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                }
-                else {
-                    conditionMap.replace(i,true);
-                    if (i > 1) {
-                        conditionMap.replace((i-1),false); // replace previous con w false
+                    if (!CloseEnough(drivetrain.getPose(), targetPose)) {
+                        drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                     }
-                    System.out.println(conditionMap);
+                    else {
+                        //System.out.println(conditionMap);
+                        curStep += 1; //  add a stopSwerve() here?
+                    }
                 }
             }
                 else {
                     robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                    conditionMap.replace(targetPoses.size()-1,false);
-                    conditionMap.replace(2,false); // end
-                    System.out.println(conditionMap);
+                    //System.out.println(conditionMap);
+                    curStep = 1;
                 }
 
             }
@@ -200,7 +193,7 @@ public class PathCommands {
     // path commands vvv
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
     public static void Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
-        SmartDashboard.putBoolean("running Path1Command",false);
+        SmartDashboard.putBoolean("running Path1Command",true);
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.5, 0.5, Rotation2d.fromDegrees(0)),
         new Pose2d(0.5, -0.5, Rotation2d.fromDegrees(0)));
         pathSteps(drivetrain, fieldRelative, m_period, robot,
