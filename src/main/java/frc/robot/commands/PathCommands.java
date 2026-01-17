@@ -72,12 +72,11 @@ public class PathCommands {
   public static double speedCap = 0.5;
   //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
   public static boolean end = false;
-
+  private static final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
+  private static final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
+  private static final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9); // import these from robot for better continuity?
   Timer timer;
     //Drivetrain m_swerve; // does this just work????????
-    private final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
-    private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
-    private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9);
     //
     //
     static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
@@ -87,6 +86,20 @@ public class PathCommands {
     // - sequenceSteps method? but idk i'll wait till i have more motivation
     //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
     //
+    private static void setSwerve(Drivetrain drivetrain, double m_period, double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+        double a =
+        m_xspeedLimiter.calculate(MathUtil.applyDeadband(xSpeed, 0.03))
+            * SwerveConstants.TOP_SPEED_METERS_PER_SEC
+            * 0.4;
+    double b =
+        m_yspeedLimiter.calculate(MathUtil.applyDeadband(ySpeed, 0.03))
+            * SwerveConstants.TOP_SPEED_METERS_PER_SEC
+            * 0.4;
+    double c =
+        m_rotLimiter.calculate(MathUtil.applyDeadband(rot, 0.04))
+            * 1.4;
+        drivetrain.drive(a, b, c, fieldRelative, m_period);
+    }
 // NONE OF THESE ARE EVEN COMMANDS LIKE WHY IS THIS IN THE COMMANDS FOLDE HELP WHAT AM I DOING
 // do a logic run through with the new code when brain work better
     //-------------------------------------------- this code is disgusting please rework it future me holy crap
@@ -104,7 +117,8 @@ public class PathCommands {
                         List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
 
                         if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                            drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
+                            setSwerve(drivetrain, m_period, values.get(0), values.get(1), values.get(2),fieldRelative);
+                            //drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
                         }
                         else {
                             //System.out.println(conditionMap);
@@ -227,6 +241,7 @@ public class PathCommands {
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
     public static void Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         SmartDashboard.putBoolean("running Path1Command",true);
+        totalSequenceSteps = 1;
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)),
         new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)));
         pathSteps(drivetrain, fieldRelative, m_period, robot,
@@ -235,6 +250,7 @@ public class PathCommands {
     }
 
     public static void Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
+        totalSequenceSteps = 1;
         SmartDashboard.putBoolean("running Path2Command",true);
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)),
         new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)));
@@ -246,6 +262,7 @@ public class PathCommands {
     Robot robot, Double targetYaw) {
         //if (alliance.isPresent()) { // maybe put this back? maybe just hope & pray
             //if (alliance.get() == Alliance.Red) // add alliance specific stuff l8r idgaf rn
+            totalSequenceSteps = 1;
                     int targetTagID = 12;
                     SmartDashboard.putBoolean("running AutoPrototype",true);
                     List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
@@ -260,6 +277,7 @@ public class PathCommands {
     }
     public static void AutoPrototype2(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
         int targetTagID = 3;
+        totalSequenceSteps = 2;
         SmartDashboard.putBoolean("running AutoPrototype",true);
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
             Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
@@ -278,6 +296,7 @@ public class PathCommands {
     // - or have it detect it based on what tags it can see???? <------------- do THISSSSSSSSSSSSSSSSSS
     public static void ShootThenClimbAuto(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
         int targetTagID = 3;
+        totalSequenceSteps = 2;
         SmartDashboard.putBoolean("running AutoPrototype",true);
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
             Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag

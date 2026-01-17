@@ -86,7 +86,7 @@ public class Robot extends TimedRobot {
 
   
   public Robot () {
-
+    pathRunning = false;
     SmartDashboard.putBoolean("running Path1Command",true);
     AprilTagPoses = Arrays.asList();
     timer = new Timer();
@@ -266,6 +266,9 @@ public class Robot extends TimedRobot {
             targetYaw = 0;
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
             PathCommands.curMovementStep = 1;
+            PathCommands.curSequenceStep = 1;
+            SmartDashboard.putNumber("curSequenceStep", PathCommands.curSequenceStep);
+            SmartDashboard.putNumber("curMovementStep", PathCommands.curMovementStep);
             //curAprilTagID = 0;
         }
                     
