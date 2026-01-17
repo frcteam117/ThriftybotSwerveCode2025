@@ -56,7 +56,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
-public class PathCommands {
+public class SubsystemCommands {
   private static final double DEADBAND = 0.1;
   private static final double ANGLE_KP = 5.0;
   private static final double ANGLE_KD = 0.4;
@@ -99,50 +99,6 @@ public class PathCommands {
         m_rotLimiter.calculate(MathUtil.applyDeadband(rot, 0.04))
             * 1.4;
         drivetrain.drive(a, b, c, fieldRelative, m_period);
-    }
-// NONE OF THESE ARE EVEN COMMANDS LIKE WHY IS THIS IN THE COMMANDS FOLDE HELP WHAT AM I DOING
-// do a logic run through with the new code when brain work better
-    //-------------------------------------------- this code is disgusting please rework it future me holy crap
-    private static void pathSteps(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot,
-     Integer stepNum, int stepInSequence, List<Pose2d> targetPoses) {
-        if (stepInSequence == curSequenceStep) {
-            for (int i = 1; i <= stepNum; i++) {
-                if (!(curMovementStep == stepNum+1)) { // if at end step
-                    if (i == curMovementStep) {
-                        //SmartDashboard.putNumber("length of targetPoses",targetPoses.size());
-                        //SmartDashboard.putNumber("stepNum",stepNum);
-                        System.out.println("length of targetPoses & stepNum: "+targetPoses.size()+" "+stepNum);
-                        System.out.println("i: "+i);
-                        Pose2d targetPose = targetPoses.get(i-1);
-                        List<Double> values = CalcSwerveValues(drivetrain.getPose(), targetPose);
-
-                        if (!CloseEnough(drivetrain.getPose(), targetPose)) {
-                            setSwerve(drivetrain, m_period, values.get(0), values.get(1), values.get(2),fieldRelative);
-                            //drivetrain.drive(values.get(0), values.get(1), values.get(2), fieldRelative, m_period); 
-                        }
-                        else {
-                            //System.out.println(conditionMap);
-                            curMovementStep += 1; //  add a stopSwerve() here?
-                        }
-                    }
-                }
-                    else {
-                        robot.pathRunning = false; // does tthis actually change the variable in Robot.java???? idk man
-                        //System.out.println(conditionMap);
-                        curMovementStep = 1;
-                        robot.curAprilTagID = 0;
-                        if (stepInSequence == totalSequenceSteps) {
-                            totalSequenceSteps = 0;
-                            curSequenceStep = 1;
-                        }
-                        else {
-                            curSequenceStep += 1;
-                        }
-
-                    }
-
-                }
-        }
     }
     private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
         double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
@@ -198,21 +154,58 @@ public class PathCommands {
         });
 
     }
+    // non-drivetrain subsystem commands:
+    public static Command ExpandHopper(Integer stepInSequence) {
+        return Commands.runOnce( () -> {});
+    }
+    public static Command RetractHopper(Integer stepInSequence) {
+        return Commands.runOnce( () -> {});
+    }
+    public static Command SetShooterHoodAngle(Integer stepInSequence) {
+        return Commands.runOnce( () -> {});
+    }
+    public static Command DeployIntake(Integer stepInSequence) {
+        return Commands.runOnce( () -> {});
+    }   
+    public static Command RetractIntake(Integer stepInSequence) {// should this be UndeployIntake instead?
+        return Commands.runOnce( () -> {});
+    }
+    public static Command IntakeFuel(Integer stepInSequence) {
+        return Commands.runOnce( () -> {});
+    }
+    public static Command RunLeftShooter(Integer stepInSequence) { // adjust this?
+        return Commands.runOnce( () -> {});
+    }
+    public static Command RunRightShooter(Integer stepInSequence) { // adjust this?
+        return Commands.runOnce( () -> {});
+    }
+    public static Command TowerAlign(Integer stepInSequence, String position) { // position will be like front left/center/right or side or back yknow
+        return Commands.runOnce( () -> {});
+    }
+    public static Command ExtendClimber(Integer stepInSequence) { // dunno about this one
+        return Commands.runOnce( () -> {});
+    }
+    public static Command RetractClimber(Integer stepInSequence) { // dunno about this one
+        return Commands.runOnce( () -> {});
+    }
+    public static Command ClimbLevel1(Integer stepInSequence) {
+        return Commands.runOnce( () -> {});
+    }
+    //public static Command ClimbLevel3() {
 
+    //}
 
     // path commands vvv
     // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
-
+    /* 
     public static Command Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
         SmartDashboard.putBoolean("running Path1Command",true);
         totalSequenceSteps = 1;
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)),
         new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)));
-        //
-        return Commands.runOnce( () -> {
-            pathSteps(drivetrain, fieldRelative, m_period, robot,
-            2, 1, targetPoses); 
-         });
+        pathSteps(drivetrain, fieldRelative, m_period, robot,
+        2, 1, targetPoses); //
+
     }
 
     public static Command Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
@@ -220,11 +213,8 @@ public class PathCommands {
         SmartDashboard.putBoolean("running Path2Command",true);
         List<Pose2d> targetPoses = Arrays.asList(new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)),
         new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)));
-        //
-        return Commands.runOnce( () -> {
-            pathSteps(drivetrain, fieldRelative, m_period, robot,
-            2, 1, targetPoses); 
-         });
+        pathSteps(drivetrain, fieldRelative, m_period, robot,
+        2, 1,targetPoses); //
     }
     
     public static Command DriveToCenterFromOrigin(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, 
@@ -280,7 +270,7 @@ public class PathCommands {
             // run intake methods here or whatever
         }
     }
-        
+        */
 
 
 }

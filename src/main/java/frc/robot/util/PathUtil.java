@@ -43,23 +43,23 @@ public class PathUtil {
     }
     else if (aprilTagID == 1) {
       //SmartDashboard.putBoolean("before calling Path1Command",true);
-      PathCommands.Path1Command(drivetrain, fieldRelative, m_period, robot);
+      PathCommands.Path1Command(drivetrain, fieldRelative, m_period, robot).schedule();
       //SmartDashboard.putBoolean("after calling Path1Command", true);
       //List<Double> targetPose = 1.0);
       //Data data = new Data(Commands, targetPose);
     }
     else if (aprilTagID == 2) {
-      PathCommands.Path2Command(drivetrain, fieldRelative, m_period, robot);
+      PathCommands.Path2Command(drivetrain, fieldRelative, m_period, robot).schedule();
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }//DriverStation.getAlliance() add ts to params vvvvv
     else if (aprilTagID == 3) {
-      PathCommands.DriveToCenterFromOrigin(drivetrain, fieldRelative, m_period, robot, m_period);
+      PathCommands.DriveToCenterFromOrigin(drivetrain, fieldRelative, m_period, robot, m_period).schedule();
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }
     else if (aprilTagID == 4) {
-      PathCommands.AutoPrototype2(drivetrain, fieldRelative, m_period, robot, targetYaw);
+      PathCommands.AutoPrototype2(drivetrain, fieldRelative, m_period, robot, targetYaw).schedule();
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }
