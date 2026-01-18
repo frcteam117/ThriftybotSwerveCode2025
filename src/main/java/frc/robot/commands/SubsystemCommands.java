@@ -170,13 +170,13 @@ public class SubsystemCommands {
     public static Command RetractIntake(Integer stepInSequence) {// should this be UndeployIntake instead?
         return Commands.runOnce( () -> {});
     }
-    public static Command IntakeFuel(Integer stepInSequence) {
+    public static Command IntakeFuel(Integer stepInSequence) { // add stop intake command
         return Commands.runOnce( () -> {});
     }
     public static Command RunLeftShooter(Integer stepInSequence) { // adjust this?
         return Commands.runOnce( () -> {});
     }
-    public static Command RunRightShooter(Integer stepInSequence) { // adjust this?
+    public static Command RunRightShooter(Integer stepInSequence) { // adjust this?, add stop commands
         return Commands.runOnce( () -> {});
     }
     public static Command TowerAlign(Integer stepInSequence, String position) { // position will be like front left/center/right or side or back yknow

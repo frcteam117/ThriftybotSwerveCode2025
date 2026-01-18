@@ -37,19 +37,19 @@ public class PathUtil {
   public static void getPathFromTagID(int aprilTagID, Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, double targetYaw) {
     // commands for each tag: // use fieldRelative to determine if it should be fieldRelative or just offSet!!!!!!!!!
     if (aprilTagID == 0) {
-      PathCommands.BlankCommand();
+      //PathCommands.BlankCommand().schedule();
       //List<Double> targetPose = ;
       //Data data = new Data(Commands, targetPose);
     }
     else if (aprilTagID == 1) {
       //SmartDashboard.putBoolean("before calling Path1Command",true);
-      PathCommands.Path1Command(drivetrain, fieldRelative, m_period, robot).schedule();
+      PathCommands.Path1Command(drivetrain, fieldRelative, m_period).schedule();
       //SmartDashboard.putBoolean("after calling Path1Command", true);
       //List<Double> targetPose = 1.0);
       //Data data = new Data(Commands, targetPose);
     }
     else if (aprilTagID == 2) {
-      PathCommands.Path2Command(drivetrain, fieldRelative, m_period, robot).schedule();
+      PathCommands.Path2Command(drivetrain, fieldRelative, m_period).schedule();
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }//DriverStation.getAlliance() add ts to params vvvvv
@@ -63,8 +63,13 @@ public class PathUtil {
       //List<Double> targetPose = 1.0,1.0);
       //Data data = new Data(Commands, targetPose);
     }
+    else if (aprilTagID == 5) {
+      PathCommands.shootThenClimbAuto(drivetrain, fieldRelative, m_period, robot, targetYaw).schedule();
+      //List<Double> targetPose = 1.0,1.0);
+      //Data data = new Data(Commands, targetPose);
+    }
     else {
-      PathCommands.BlankCommand();
+      //PathCommands.BlankCommand();
       //List<Double> targetPose = 0.0);
       //Data data = new Data(Commands, targetPose);
     }
