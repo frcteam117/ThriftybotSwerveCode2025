@@ -66,84 +66,11 @@ public class SubsystemCommands {
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
-  //
-  //public static boolean condition = false; // this whole system is dogshit but this is prolly the worst part. its funny tho
-  public static double limiter = 0.2;
-  public static double speedCap = 0.5;
-  //- u need another condition for each in the sequence, ig you could make it a list and change the # in each sequence part? sure idk gn
-  public static boolean end = false;
   private static final SlewRateLimiter m_xspeedLimiter = new SlewRateLimiter(1);
   private static final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(1);
   private static final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(9); // import these from robot for better continuity?
-  Timer timer;
-    //Drivetrain m_swerve; // does this just work????????
-    //
-    //
-    static AprilTagFieldLayout kTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-    public static int curMovementStep = 1;
-    public static int curSequenceStep = 1;
-    public static int totalSequenceSteps = 0; // prolly a better way to do this using another overarchig
-    // - sequenceSteps method? but idk i'll wait till i have more motivation
-    //static List<Pose3d> AprilTagPoses = Robot.AprilTagPoses;
-    //
-    private static void setSwerve(Drivetrain drivetrain, double m_period, double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-        double a =
-        m_xspeedLimiter.calculate(MathUtil.applyDeadband(xSpeed, 0.03))
-            * SwerveConstants.TOP_SPEED_METERS_PER_SEC
-            * 0.4;
-    double b =
-        m_yspeedLimiter.calculate(MathUtil.applyDeadband(ySpeed, 0.03))
-            * SwerveConstants.TOP_SPEED_METERS_PER_SEC
-            * 0.4;
-    double c =
-        m_rotLimiter.calculate(MathUtil.applyDeadband(rot, 0.04))
-            * 1.4;
-        drivetrain.drive(a, b, c, fieldRelative, m_period);
-    }
-    private static boolean CloseEnough(Pose2d curPose, Pose2d targetPose) { // gotta be a better way 2 do this but again idfk
-        double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
-        double difY = Math.abs(targetPose.getY())-Math.abs(curPose.getY()); 
-        if ((Math.abs(difX)+Math.abs(difY))/2 <= 0.2) {
-            double difRot = Math.abs(
-                targetPose.getRotation().getDegrees())
-                - Math.abs(curPose.getRotation().getDegrees()); 
-            if (difRot <= 5) {
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        else {
-            return false;
-        }
-    }
-
-    private static List<Double> CalcSwerveValues(Pose2d curPose, Pose2d targetPose) {
-        double difX = Math.abs(targetPose.getX())-Math.abs(curPose.getX()); 
-        double difY = Math.abs(targetPose.getY())-Math.abs(curPose.getY()); 
-        double difRot = targetPose.getRotation().getDegrees()-curPose.getRotation().getDegrees();
-        //
-        //
-        double xSpeed = 0;
-        double ySpeed = 0;
-        double rot = 0; // add this later idk man
-        //Rotation2d difRot = Pose2d.getRotation();
-        xSpeed = difX * limiter;
-        ySpeed = difY * limiter;
-        rot = difRot;
-        if (xSpeed > speedCap) {
-            xSpeed = speedCap;
-        }
-        if (ySpeed > speedCap) {
-            ySpeed = speedCap;
-        }
-        // is this math right?????
-        List<Double> values = Arrays.asList(xSpeed,ySpeed,rot);
-        return values;
-
-    }
-
+    //===================================
+ 
     public static Command BlankCommand() {
         return Commands.runOnce( () -> {});
     }
@@ -154,6 +81,7 @@ public class SubsystemCommands {
         });
 
     }
+    //===================================
     // non-drivetrain subsystem commands:
     public static Command ExpandHopper(Integer stepInSequence) {
         return Commands.runOnce( () -> {});
@@ -170,13 +98,22 @@ public class SubsystemCommands {
     public static Command RetractIntake(Integer stepInSequence) {// should this be UndeployIntake instead?
         return Commands.runOnce( () -> {});
     }
-    public static Command IntakeFuel(Integer stepInSequence) { // add stop intake command
+    public static Command IntakeFuel(Integer stepInSequence) { // 
+        return Commands.runOnce( () -> {});
+    }
+    public static Command StopIntake(Integer stepInSequence) { // 
         return Commands.runOnce( () -> {});
     }
     public static Command RunLeftShooter(Integer stepInSequence) { // adjust this?
         return Commands.runOnce( () -> {});
     }
-    public static Command RunRightShooter(Integer stepInSequence) { // adjust this?, add stop commands
+    public static Command RunRightShooter(Integer stepInSequence) { // adjust this?,
+        return Commands.runOnce( () -> {});
+    }
+    public static Command StopLeftShooter(Integer stepInSequence) { // adjust this?
+        return Commands.runOnce( () -> {});
+    }
+    public static Command StopRightShooter(Integer stepInSequence) { // adjust this?, 
         return Commands.runOnce( () -> {});
     }
     public static Command TowerAlign(Integer stepInSequence, String position) { // position will be like front left/center/right or side or back yknow
@@ -192,85 +129,4 @@ public class SubsystemCommands {
         return Commands.runOnce( () -> {});
     }
     //public static Command ClimbLevel3() {
-
-    //}
-
-    // path commands vvv
-    // IDK IF I HAVE TO ADD .relativeTo TO THE END OF ALL THE POSE OR NOT??????????????????
-    /* 
-    public static Command Path1Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
-        SmartDashboard.putBoolean("running Path1Command",true);
-        totalSequenceSteps = 1;
-        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)),
-        new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)));
-        pathSteps(drivetrain, fieldRelative, m_period, robot,
-        2, 1, targetPoses); //
-
-    }
-
-    public static Command Path2Command(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot) {
-        totalSequenceSteps = 1;
-        SmartDashboard.putBoolean("running Path2Command",true);
-        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(0.1, -0.1, Rotation2d.fromDegrees(0)),
-        new Pose2d(-0.1, 0.1, Rotation2d.fromDegrees(0)));
-        pathSteps(drivetrain, fieldRelative, m_period, robot,
-        2, 1,targetPoses); //
-    }
-    
-    public static Command DriveToCenterFromOrigin(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, 
-    Robot robot, Double targetYaw) {
-        //if (alliance.isPresent()) { // maybe put this back? maybe just hope & pray
-            //if (alliance.get() == Alliance.Red) // add alliance specific stuff l8r idgaf rn
-            totalSequenceSteps = 1;
-                    int targetTagID = 12;
-                    SmartDashboard.putBoolean("running AutoPrototype",true);
-                    List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
-                        Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
-                        Robot.AprilTagPoses.get(targetTagID).getY(),
-                        Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
-                    ),
-                    new Pose2d(6.5, 0.6, Rotation2d.fromDegrees(0)),
-                    new Pose2d(8.3, 4, Rotation2d.fromDegrees(0))
-                    );
-        //    }
-    }
-    public static Command AutoPrototype2(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
-        int targetTagID = 3;
-        totalSequenceSteps = 2;
-        SmartDashboard.putBoolean("running AutoPrototype",true);
-        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
-            Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
-            Robot.AprilTagPoses.get(targetTagID).getY(),
-            Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
-        )
-        );
-        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, 1,targetPoses); //
-        if (CloseEnough(drivetrain.getPose(),
-        new Pose2d(8.3, 4, Rotation2d.fromDegrees(0)) 
-        ) && !robot.pathRunning) { // if at target pose and no path is running
-            // run intake methods here or whatever
-        }
-    } // the autos should probably be in their own folder but idgaf rn ^^ vvvvvvv
-    // add a way to autoset the robots position to be wherever it is t the start of the game,
-    // - or have it detect it based on what tags it can see???? <------------- do THISSSSSSSSSSSSSSSSSS
-    public static Command ShootThenClimbAuto(Drivetrain drivetrain, Boolean fieldRelative, Double m_period, Robot robot, Double targetYaw) {
-        int targetTagID = 3;
-        totalSequenceSteps = 2;
-        SmartDashboard.putBoolean("running AutoPrototype",true);
-        List<Pose2d> targetPoses = Arrays.asList(new Pose2d(
-            Robot.AprilTagPoses.get(targetTagID).getX(), // go to a tag
-            Robot.AprilTagPoses.get(targetTagID).getY(),
-            Rotation2d.fromDegrees(targetYaw) //does this need to be the difference of smth? idk
-        )
-        );
-        pathSteps(drivetrain, fieldRelative, m_period, robot, 1, 1, targetPoses); //
-        if (CloseEnough(drivetrain.getPose(),
-        new Pose2d(8.3, 4, Rotation2d.fromDegrees(0)) 
-        ) && !robot.pathRunning) { // if at target pose and no path is running
-            // run intake methods here or whatever
-        }
-    }
-        */
-
-
 }

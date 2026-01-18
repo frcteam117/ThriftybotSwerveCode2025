@@ -89,9 +89,6 @@ public class Robot extends TimedRobot {
     pathRunning = false;
     SmartDashboard.putBoolean("running Path1Command",true);
     AprilTagPoses = Arrays.asList();
-    timer = new Timer();
-    timer.reset();
-    timer.stop();
     kPVision_Turn = -.03;
     targetYaw = (0.0);
     camera0 = new PhotonCamera("PC_Camera0");
@@ -139,17 +136,6 @@ public class Robot extends TimedRobot {
     } else {
     driveWithJoystick(true);
     }
-  }
-
-
-  private void resetPathVars() {
-    curPathStep = 1;
-    totalPathSteps = 0;
-    pathTimerStop = 0;
-    //curPathCommand = SubsystemCommands.BlankCommand();
-    timer.stop();
-    timer.reset();
-    pathRunning = false;
   }
 
   private void setSwerve(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
@@ -248,9 +234,6 @@ public class Robot extends TimedRobot {
                     SmartDashboard.putNumber("check #",4);
                     if (!pathRunning) { // start path
                         SmartDashboard.putNumber("check #",5);
-                        SubsystemCommands.curMovementStep = 1;
-                        SubsystemCommands.curSequenceStep = 1;
-                        curPathStep = 1;
                         PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this, targetYaw); // is targetYaw right here?
                         pathRunning = true;
                         //Command a = () -> curPathCommand.schedule();
@@ -259,7 +242,7 @@ public class Robot extends TimedRobot {
                     }
                 }
                 else if (pathRunning) {
-                    PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this, targetYaw); // is targetYaw right here?
+                    //PathUtil.getPathFromTagID(curAprilTagID, m_swerve, fieldRelative, getPeriod(), this, targetYaw); // is targetYaw right here?
                 }
             }
         }
@@ -267,11 +250,6 @@ public class Robot extends TimedRobot {
             fieldRelative = true;
             targetYaw = 0;
             setSwerve(-m_controller.getLeftY(), -m_controller.getLeftX(), -m_controller.getRightX(), fieldRelative);
-            SubsystemCommands.curMovementStep = 1;
-            SubsystemCommands.curSequenceStep = 1;
-            //SubsystemCommands.
-            SmartDashboard.putNumber("curSequenceStep", SubsystemCommands.curSequenceStep);
-            SmartDashboard.putNumber("curMovementStep", SubsystemCommands.curMovementStep);
             //curAprilTagID = 0;
         }
                     
